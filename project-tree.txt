@@ -1,0 +1,36 @@
+.
+├── app.json
+├── App.tsx
+├── assets
+│   ├── adaptive-icon.png
+│   ├── favicon.png
+│   ├── icon.png
+│   └── splash-icon.png
+├── babel.config.js
+├── components
+│   └── CustomDrawer.tsx
+├── data
+├── index.ts
+├── navigation
+│   ├── ClubsStackNavigator.tsx
+│   ├── DrawerNavigator.tsx
+│   ├── EventsStackNavigator.tsx
+│   ├── ExploreStackNavigator.tsx
+│   └── TabNavigator.tsx
+├── package-lock.json
+├── package.json
+├── project-tree.txt
+├── screens
+│   ├── ClubDetailScreen.tsx
+│   ├── ClubsScreen.tsx
+│   ├── EventDetailScreen.tsx
+│   ├── EventsScreen.tsx
+│   ├── HomeScreen.tsx
+│   ├── MainLayout.tsx
+│   ├── MapScreen.tsx
+│   ├── ProfileScreen.tsx
+│   └── SettingsScreen.tsx
+├── tsconfig.json
+└── yarn.lock
+
+6 directories, 28 files
