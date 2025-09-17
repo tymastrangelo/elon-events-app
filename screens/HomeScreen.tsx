@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { ExploreStackParamList } from '../navigation/ExploreStackNavigator';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import FiltersModal from '../components/FiltersModal';
 
 // Type Definitions
 export type Event = {
@@ -94,6 +95,10 @@ const clubs: Club[] = [
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<ExploreStackParamList>>();
+  const [filtersVisible, setFiltersVisible] = useState(false);
+  const handleApplyFilters = (filters: any) => {
+    console.log('Filters applied:', filters);
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -116,7 +121,7 @@ export default function HomeScreen() {
       <View style={styles.searchBox}>
         <Ionicons name="search-outline" size={18} color="#888" style={{ marginRight: 6 }} />
         <TextInput placeholder="Search events..." placeholderTextColor="#aaa" style={{ flex: 1 }} />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setFiltersVisible(true)}>
           <Text style={{ color: '#5669FF', fontWeight: '500' }}>Filters</Text>
         </TouchableOpacity>
       </View>
@@ -195,6 +200,12 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+      
+      <FiltersModal
+        visible={filtersVisible}
+        onClose={() => setFiltersVisible(false)}
+        onApply={handleApplyFilters}
+      />
     </SafeAreaView>
   );
 }
