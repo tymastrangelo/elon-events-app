@@ -29,7 +29,7 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri: 'https://randomuser.me/api/portraits/men/75.jpg' }}
+            source={{ uri: 'https://elonphoenix.com/images/2025/8/29/Tyler_Mastrangelo_20250821_XC_Media_Day_JK_1863.jpg?width=146' }}
             style={styles.avatar}
           />
           <Text style={styles.name}>{name}</Text>
