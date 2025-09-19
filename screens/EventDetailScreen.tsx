@@ -80,7 +80,7 @@ export default function EventDetailScreen() {
                 style={styles.avatar}
               />
             </View>
-            <Text style={styles.attendeeText}>+{event.attendees} Going</Text>
+            <Text style={styles.attendeeText}>+{event.attendees} going</Text>
           </View>
 
           {/* Title */}

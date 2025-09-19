@@ -37,7 +37,7 @@ const myEvents: Event[] = [
     id: 5,
     title: 'Club Soccer Practice',
     location: 'South Campus Fields',
-    attendees: '12 going',
+    attendees: '12',
     image: 'https://plus.unsplash.com/premium_photo-1685231505282-fd4188e44841?q=80&w=2671&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     isLive: true,
   },
@@ -45,7 +45,7 @@ const myEvents: Event[] = [
     id: 6,
     title: 'Code & Coffee Meetup',
     location: 'Moseley Student Center',
-    attendees: '9 going',
+    attendees: '9',
     image: 'https://images.unsplash.com/flagged/photo-1556655678-9d4812e3fbe9?q=80&w=2671&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     isLive: false,
   },
@@ -56,14 +56,14 @@ const exploreEvents: Event[] = [
     id: 1,
     title: 'International Band Night',
     location: '36 Guild Street, London',
-    attendees: '20 going',
+    attendees: '20',
     image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
   },
   {
     id: 2,
     title: "Jo Malone's Art Gala",
     location: 'Radius Gallery, Santa Cruz',
-    attendees: '32 going',
+    attendees: '32',
     image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
   },
 ];
@@ -73,7 +73,7 @@ const recommendedEvents: Event[] = [
     id: 3,
     title: 'Sustainability Panel',
     location: 'McBride Gathering Space',
-    attendees: '15 going',
+    attendees: '15',
     image: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400',
   },
 ];
@@ -143,7 +143,7 @@ export default function HomeScreen() {
                   <Feather name="map-pin" size={14} color="#666" />
                   <Text style={styles.eventLocation}>{event.location}</Text>
                 </View>
-                <Text style={styles.attendees}>{event.attendees}</Text>
+                <Text style={styles.attendees}>{event.attendees} going</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -162,7 +162,7 @@ export default function HomeScreen() {
                   <Feather name="map-pin" size={14} color="#666" />
                   <Text style={styles.eventLocation}>{event.location}</Text>
                 </View>
-                <Text style={styles.attendees}>{event.attendees}</Text>
+                <Text style={styles.attendees}>{event.attendees} going</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -181,7 +181,7 @@ export default function HomeScreen() {
                   <Feather name="map-pin" size={14} color="#666" />
                   <Text style={styles.eventLocation}>{event.location}</Text>
                 </View>
-                <Text style={styles.attendees}>{event.attendees}</Text>
+                <Text style={styles.attendees}>{event.attendees} going</Text>
               </View>
             </TouchableOpacity>
           ))}
