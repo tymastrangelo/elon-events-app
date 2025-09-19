@@ -17,42 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { EventsStackParamList } from '../navigation/EventsStackNavigator';
-
-type Event = {
-  id: number;
-  title: string;
-  date: string;
-  location: string;
-  image: string;
-  attendees: string;
-};
-
-const mockEvents: Event[] = [
-  {
-    id: 1,
-    title: 'International Band Night',
-    date: 'Friday, Sept 20 • 8:00 PM',
-    location: '36 Guild Street, London',
-    image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
-    attendees: '20',
-  },
-  {
-    id: 2,
-    title: "Jo Malone's Art Gala",
-    date: 'Saturday, Sept 21 • 6:00 PM',
-    location: 'Radius Gallery, Santa Cruz',
-    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
-    attendees: '32',
-  },
-  {
-    id: 3,
-    title: 'Code & Coffee Meetup',
-    date: 'Monday, Sept 23 • 9:00 AM',
-    location: 'Moseley Student Center',
-    image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=400',
-    attendees: '12',
-  },
-];
+import { exploreEvents as mockEvents, Event } from '../data/mockData';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);

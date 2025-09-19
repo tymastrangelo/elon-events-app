@@ -11,50 +11,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { clubs, Club } from '../data/mockData'; // ✅ import shared mock data
 
 const clubCategories = ['All', 'Academic', 'Cultural', 'Service', 'Sports', 'Music', 'Arts'];
-
-const clubData = [
-  {
-    id: '1',
-    name: 'Elon Coding Club',
-    category: 'Academic',
-    description: 'Build projects, attend hackathons, and improve your coding skills.',
-    image: 'https://img.icons8.com/fluency/96/code.png',
-    joined: true,
-  },
-  {
-    id: '2',
-    name: 'Black Student Union',
-    category: 'Cultural',
-    description: 'Celebrating and supporting the Black community on campus.',
-    image: 'https://img.icons8.com/fluency/96/community-grants.png',
-    joined: false,
-  },
-  {
-    id: '3',
-    name: 'Club Soccer',
-    category: 'Sports',
-    description: 'Join weekly practices and compete against other universities.',
-    image: 'https://img.icons8.com/fluency/96/soccer-ball.png',
-    joined: false,
-  },
-  {
-    id: '4',
-    name: 'Music Ensemble',
-    category: 'Music',
-    description: 'Perform, rehearse, and jam with other student musicians.',
-    image: 'https://img.icons8.com/fluency/96/musical-notes.png',
-    joined: true,
-  },
-];
 
 export default function ClubsScreen() {
   const navigation = useNavigation<any>();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredClubs = clubData.filter(
+  const filteredClubs = clubs.filter(
     (club) =>
       (selectedCategory === 'All' || club.category === selectedCategory) &&
       club.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -114,13 +80,11 @@ export default function ClubsScreen() {
         {filteredClubs.length === 0 ? (
           <Text style={styles.emptyState}>No clubs found in this category.</Text>
         ) : (
-          filteredClubs.map((club) => (
+          filteredClubs.map((club: Club) => (
             <TouchableOpacity
               key={club.id}
               style={styles.clubCard}
-              onPress={() =>
-                navigation.navigate('ClubDetail' as never, { club } as never)
-              }
+              onPress={() => navigation.navigate('ClubDetail' as never, { club } as never)}
             >
               <Image source={{ uri: club.image }} style={styles.clubImage} />
               <View style={styles.clubInfo}>
