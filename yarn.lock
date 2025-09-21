@@ -3889,7 +3889,7 @@ react-native-reanimated@^4.1.0, "react-native-reanimated@>= 2.0.0":
     react-native-is-edge-to-edge "^1.2.1"
     warn-once "^0.1.0"
 
-react-native-worklets@>=0.5.0:
+react-native-worklets@^0.5.1, react-native-worklets@>=0.5.0:
   version "0.5.1"
   resolved "https://registry.npmjs.org/react-native-worklets/-/react-native-worklets-0.5.1.tgz"
   integrity sha512-lJG6Uk9YuojjEX/tQrCbcbmpdLCSFxDK1rJlkDhgqkVi1KZzG7cdcBFQRqyNOOzR9Y0CXNuldmtWTGOyM0k0+w==

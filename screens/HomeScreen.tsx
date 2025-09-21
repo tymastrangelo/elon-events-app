@@ -16,7 +16,14 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { ExploreStackParamList } from '../navigation/ExploreStackNavigator';
 import FiltersModal from '../components/FiltersModal';
-import { myEvents, exploreEvents, recommendedEvents, clubs, Event, Club } from '../data/mockData';
+import {
+  myEvents,
+  exploreEvents,
+  recommendedEvents,
+  clubs,
+  Event,
+  Club,
+} from '../data/mockData';
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<ExploreStackParamList>>();

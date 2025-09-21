@@ -16,6 +16,7 @@ export type Event = {
   externalLink?: string;
   category?: string;
   isLive?: boolean; // ✅ changed from `live`
+  coordinates?: { latitude: number; longitude: number };
 };
 
 // Club Type
@@ -79,6 +80,7 @@ export const exploreEvents: Event[] = [
     contactEmail: 'events@elonarts.edu',
     externalLink: 'https://elonarts.edu/malone-gala',
     category: 'Gallery & Exhibits',
+    coordinates: { latitude: 36.1043, longitude: -79.5058 }, // example coordinates
   },
 ];
 
