@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DrawerNavigator from './navigation/DrawerNavigator';
 import EventDetailScreen from './screens/EventDetailScreen';
 
+// This will be our main stack that handles app-wide navigation.
 const RootStack = createStackNavigator();
 
 export default function App() {
@@ -13,16 +14,14 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         <RootStack.Navigator>
+          {/* The DrawerNavigator contains all our main screens (Tabs, Clubs, etc.) */}
           <RootStack.Screen
-            name="Main"
+            name="MainDrawer"
             component={DrawerNavigator}
             options={{ headerShown: false }}
           />
-          <RootStack.Screen
-            name="EventDetail"
-            component={EventDetailScreen}
-            options={{ headerShown: false }}
-          />
+          {/* EventDetailScreen is now a modal-style screen on top of everything else. */}
+          <RootStack.Screen name="EventDetail" component={EventDetailScreen} options={{ headerShown: false }} />
         </RootStack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

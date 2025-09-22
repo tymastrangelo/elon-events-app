@@ -13,7 +13,7 @@ import {
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { myEvents, exploreEvents, Event } from '../data/mockData';
 import { Modalize } from 'react-native-modalize';
@@ -22,14 +22,13 @@ import { useRef } from 'react';
 const { width, height } = Dimensions.get('window');
 const eventsWithCoords: Event[] = [...myEvents, ...exploreEvents].filter(e => e.coordinates);
 
-// It's a good practice to type your navigation props.
-// This assumes you have an EventDetail screen in your stack that accepts an 'event' param.
-export type RootStackParamList = {
-  Map: undefined; // Assuming the name of this screen in the navigator is 'Map'
-  EventDetail: { event: Event };
-};
+// Import the centralized navigation types
+import { RootStackNavigationProp } from '../navigation/types';
+
 export default function MapScreen() {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  // Since MapScreen is inside the TabNavigator, which is inside the Drawer,
+  // we can use the RootStackNavigationProp directly.
+  const navigation = useNavigation<RootStackNavigationProp>();
   const modalRef = useRef<Modalize>(null);
   const [activeTab, setActiveTab] = useState<'Upcoming' | 'Ongoing' | 'Past'>('Upcoming');
 

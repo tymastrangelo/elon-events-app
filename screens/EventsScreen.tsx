@@ -13,10 +13,10 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { EventsStackParamList } from '../navigation/EventsStackNavigator';
+import { RootStackNavigationProp, EventsStackParamList } from '../navigation/types';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { exploreEvents as mockEvents, Event } from '../data/mockData';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -24,7 +24,13 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 export default function EventsScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<EventsStackParamList>>();
+  // Combine types for the local stack and the root stack for full type safety
+  const navigation = useNavigation<
+    CompositeNavigationProp<
+      StackNavigationProp<EventsStackParamList, 'EventList'>,
+      RootStackNavigationProp
+    >
+  >();
   const [searchActive, setSearchActive] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'Upcoming' | 'Ongoing' | 'Past'>('Upcoming');
@@ -51,6 +57,8 @@ export default function EventsScreen() {
   const renderEvent = ({ item }: { item: Event }) => (
     <TouchableOpacity
       style={styles.eventCard}
+      // Navigate directly to the 'EventDetail' screen in the root stack.
+      // React Navigation will bubble this event up to the RootStack navigator.
       onPress={() => navigation.navigate('EventDetail', { event: item })}
     >
       <Image source={{ uri: item.image }} style={styles.thumbnail} />

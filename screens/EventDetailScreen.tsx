@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,29 +8,18 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
-import { RouteProp, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
+import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { RootStackParamList } from './MapScreen'; // Import the shared type
+import { RootStackParamList } from '../navigation/types'; // Import the shared type
 import { Event } from '../data/mockData'; // Import the main Event type
 
 export default function EventDetailScreen() {
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'EventDetail'>>();
   const { event } = route.params;
   const insets = useSafeAreaInsets();
-
-  // ✅ Disable drawer swipe gesture while on this screen
-  useFocusEffect(
-    React.useCallback(() => {
-      const parent = navigation.getParent(); // get DrawerNavigator
-      if (parent) parent.setOptions({ swipeEnabled: false });
-
-      return () => {
-        if (parent) parent.setOptions({ swipeEnabled: true });
-      };
-    }, [navigation])
-  );
 
   const handleMapOpen = () => {
     const encodedLocation = encodeURIComponent(event.location);
@@ -46,6 +35,18 @@ export default function EventDetailScreen() {
           style={[styles.backButton, { top: insets.top + 10 }]}
         >
           <Ionicons name="arrow-back" size={20} color="#333" />
+        </TouchableOpacity>
+
+        {/* Bookmark Button */}
+        <TouchableOpacity
+          onPress={() => setIsBookmarked(!isBookmarked)}
+          style={[styles.bookmarkButton, { top: insets.top + 10 }]}
+        >
+          <Ionicons
+            name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+            size={20}
+            color={isBookmarked ? '#5669FF' : '#333'}
+          />
         </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -147,6 +148,19 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     left: 20,
+    zIndex: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  bookmarkButton: {
+    position: 'absolute',
+    right: 20,
     zIndex: 10,
     backgroundColor: '#fff',
     borderRadius: 20,
