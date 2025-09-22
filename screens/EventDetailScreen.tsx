@@ -11,22 +11,12 @@ import {
 import { RouteProp, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-type Event = {
-  id: number;
-  title: string;
-  location: string;
-  attendees: string;
-  image: string;
-  description?: string;
-  tag?: string;
-  date?: string;
-  host?: string;
-};
+import { RootStackParamList } from './MapScreen'; // Import the shared type
+import { Event } from '../data/mockData'; // Import the main Event type
 
 export default function EventDetailScreen() {
   const navigation = useNavigation();
-  const route = useRoute<RouteProp<{ params: { event: Event } }, 'params'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'EventDetail'>>();
   const { event } = route.params;
   const insets = useSafeAreaInsets();
 

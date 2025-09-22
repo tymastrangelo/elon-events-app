@@ -1478,6 +1478,14 @@
   dependencies:
     nanoid "^3.3.11"
 
+"@react-navigation/stack@^7.4.8":
+  version "7.4.8"
+  resolved "https://registry.npmjs.org/@react-navigation/stack/-/stack-7.4.8.tgz"
+  integrity sha512-zZsX52Nw1gsq33Hx4aNgGV2RmDJgVJM71udomCi3OdlntqXDguav3J2t5oe/Acf/9uU8JiJE9W8JGtoRZ6nXIg==
+  dependencies:
+    "@react-navigation/elements" "^2.6.4"
+    color "^4.2.3"
+
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"
   resolved "https://registry.npmjs.org/@sinclair/typebox/-/typebox-0.27.8.tgz"
