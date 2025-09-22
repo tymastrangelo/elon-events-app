@@ -11,6 +11,7 @@ import {
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import MapView, { Marker } from 'react-native-maps';
 import { RootStackParamList } from '../navigation/types'; // Import the shared type
 import { Event } from '../data/mockData'; // Import the main Event type
 import { COLORS, SIZES } from '../theme';
@@ -31,7 +32,7 @@ export default function EventDetailScreen() {
   return (
     <View style={styles.pageContainer}>
         {/* Back Button */}
-        <TouchableOpacity
+        <TouchableOpacity // No style changes needed, but keeping for context
           onPress={() => navigation.goBack()}
           style={[styles.backButton, { top: insets.top + 10 }]}
         >
@@ -50,76 +51,95 @@ export default function EventDetailScreen() {
           />
         </TouchableOpacity>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Event Image */}
         <Image source={{ uri: event.image }} style={styles.image} />
 
-        <View style={styles.content}>
-          {/* Attendees Row */}
-          <View style={styles.attendeeRow}>
-            <View style={styles.avatarGroup}>
-              <Image
-                source={{ uri: 'https://randomuser.me/api/portraits/women/1.jpg' }}
-                style={styles.avatar}
-              />
-              <Image
-                source={{ uri: 'https://randomuser.me/api/portraits/men/2.jpg' }}
-                style={styles.avatar}
-              />
-              <Image
-                source={{ uri: 'https://randomuser.me/api/portraits/men/3.jpg' }}
-                style={styles.avatar}
-              />
-            </View>
-            <Text style={styles.attendeeText}>+{event.attendees} going</Text>
+        {/* Floating Attendee Card */}
+        <View style={styles.floatingAttendeeCard}>
+          <View style={styles.avatarGroup}>
+            <Image
+              source={{ uri: 'https://randomuser.me/api/portraits/women/1.jpg' }}
+              style={styles.avatar}
+            />
+            <Image
+              source={{ uri: 'https://randomuser.me/api/portraits/men/2.jpg' }}
+              style={[styles.avatar, { zIndex: 2 }]}
+            />
+            <Image
+              source={{ uri: 'https://randomuser.me/api/portraits/men/3.jpg' }}
+              style={[styles.avatar, { zIndex: 1 }]}
+            />
           </View>
+          <Text style={styles.attendeeText}>+{event.attendees} Going</Text>
+          <TouchableOpacity style={styles.inviteButton}>
+            <Text style={styles.inviteButtonText}>Invite</Text>
+          </TouchableOpacity>
+        </View>
 
+        <View style={styles.content}>
           {/* Title */}
           <Text style={styles.title}>{event.title}</Text>
 
-          {/* Date */}
+          {/* Date & Time Info */}
           {event.date && (
-            <View style={styles.row}>
-              <Feather name="calendar" size={16} color={COLORS.textMuted} />
-              <Text style={styles.metaText}>{event.date}</Text>
-            </View>
-          )}
-
-          {/* Host */}
-          {event.host && (
-            <View style={styles.organizerCard}>
-              <Image
-                source={{ uri: 'https://randomuser.me/api/portraits/men/75.jpg' }}
-                style={styles.organizerAvatar}
-              />
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Feather name="calendar" size={24} color={COLORS.primary} />
+              </View>
               <View>
-                <Text style={styles.organizerName}>{event.host}</Text>
-                <Text style={styles.organizerLabel}>Organizer</Text>
+                <Text style={styles.infoTitle}>{event.date}</Text>
+                <Text style={styles.infoSubtitle}>Tuesday, 4:00PM - 9:00PM</Text>
               </View>
             </View>
           )}
 
-          {/* About */}
-          <Text style={styles.sectionTitle}>About Event</Text>
-          <Text style={styles.description}>
-            {event.description ||
-              'Join us for a fun and engaging event featuring music, food, and great people!'}
-          </Text>
+          {/* Location Info */}
+          <View style={styles.infoRow}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="map-pin" size={24} color={COLORS.primary} />
+            </View>
+            <TouchableOpacity onPress={handleMapOpen}>
+              <View>
+                <Text style={styles.infoTitle}>{event.location}</Text>
+                <Text style={styles.infoSubtitle}>36 Guild Street London, UK</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
 
-          {/* Map */}
-          <Text style={styles.sectionTitle}>Location</Text>
-          <TouchableOpacity onPress={handleMapOpen} activeOpacity={0.9}>
-            <Image
-              source={{
-                uri: `https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(
-                  event.location
-                )}&zoom=15&size=600x300&maptype=roadmap
-                &markers=color:red%7C${encodeURIComponent(event.location)}&key=YOUR_GOOGLE_MAPS_API_KEY`,
-              }}
-              style={styles.map}
-            />
-          </TouchableOpacity>
+          {/* About */}
+          <View style={styles.aboutSection}>
+            <Text style={styles.sectionTitle}>About Event</Text>
+            <Text style={styles.description}>
+              {event.description ||
+                'Join us for a fun and engaging event featuring music, food, and great people!'}
+            </Text>
+          </View>
+
+          {/* Map Section */}
+          {event.coordinates && (
+            <>
+              <Text style={styles.sectionTitle}>Location</Text>
+              <TouchableOpacity onPress={handleMapOpen} activeOpacity={0.9}>
+                <View pointerEvents="none" style={styles.mapContainer}>
+                  <MapView
+                    style={styles.map}
+                    initialRegion={{
+                      ...event.coordinates,
+                      latitudeDelta: 0.005,
+                      longitudeDelta: 0.005,
+                    }}
+                    pitchEnabled={false}
+                    rotateEnabled={false}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                  >
+                    <Marker coordinate={event.coordinates} />
+                  </MapView>
+                </View>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
         {/* Spacer so the RSVP doesn't overlap last content */}
@@ -129,7 +149,7 @@ export default function EventDetailScreen() {
       {/* Floating RSVP Button */}
       <View style={[styles.rsvpWrapper, { bottom: insets.bottom + 10 }]}>
         <TouchableOpacity style={styles.rsvpButton}>
-          <Text style={styles.rsvpText}>RSVP</Text>
+          <Text style={styles.rsvpButtonText}>RSVP</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -143,7 +163,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   scrollContent: {
-    paddingBottom: 80,
+    paddingBottom: 120,
   },
   image: { width: '100%', height: 240 },
   backButton: {
@@ -151,7 +171,7 @@ const styles = StyleSheet.create({
     left: 20,
     zIndex: 10,
     backgroundColor: COLORS.white,
-    borderRadius: 20,
+    borderRadius: 10,
     padding: 8,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
@@ -164,7 +184,7 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 10,
     backgroundColor: COLORS.white,
-    borderRadius: 20,
+    borderRadius: 10,
     padding: 8,
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
@@ -172,67 +192,132 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  content: { padding: 20 },
-  attendeeRow: {
+  floatingAttendeeCard: {
+    position: 'absolute',
+    top: 210, // Positioned to straddle the image bottom edge
+    left: '50%',
+    transform: [{ translateX: -147.5 }], // Half of width 295
+    width: 295,
+    height: 60,
+    backgroundColor: COLORS.white,
+    borderRadius: 30,
+    shadowColor: 'rgba(89, 89, 89, 0.1)',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 1,
+    shadowRadius: 20,
+    elevation: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    paddingHorizontal: 14,
   },
-  avatarGroup: { flexDirection: 'row', marginRight: 10 },
+  avatarGroup: {
+    flexDirection: 'row',
+  },
   avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1, // Use constants for colors
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1.5,
     borderColor: COLORS.white,
-    marginRight: -8,
+    marginLeft: -10,
   },
-  attendeeText: { fontWeight: '500', color: COLORS.primary },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 10 },
-  row: {
+  attendeeText: {
+    fontWeight: '500',
+    color: COLORS.primary,
+    marginLeft: 6,
+    fontSize: 15,
+  },
+  inviteButton: {
+    marginLeft: 'auto',
+    backgroundColor: COLORS.primary,
+    borderRadius: 7,
+    paddingHorizontal: 18,
+    paddingVertical: 6,
+  },
+  inviteButtonText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  content: {
+    paddingHorizontal: SIZES.padding,
+    paddingTop: 40, // Space for the floating card
+  },
+  title: {
+    fontSize: 35,
+    fontWeight: '500',
+    color: COLORS.textPrimary,
+    lineHeight: 40,
+    marginBottom: 24,
+  },
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  metaText: { marginLeft: 8, color: COLORS.textSubtle, fontSize: 14 },
-  organizerCard: {
-    flexDirection: 'row',
+  infoIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: `${COLORS.primary}1A`, // primary with ~10% opacity
+    justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 12,
-    gap: 10,
+    marginRight: 16,
   },
-  organizerAvatar: { width: 40, height: 40, borderRadius: 20 },
-  organizerName: { fontWeight: '600', fontSize: 15 },
-  organizerLabel: { color: COLORS.textMuted, fontSize: 13 },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textPrimary,
+  },
+  infoSubtitle: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  aboutSection: {
+    marginVertical: 16,
+  },
   sectionTitle: {
     fontWeight: '600',
-    fontSize: 16,
-    marginTop: 20,
+    fontSize: 18,
     marginBottom: 8,
+    color: COLORS.textPrimary,
   },
   description: {
     fontSize: 15,
     color: COLORS.textSecondary,
     lineHeight: 22,
   },
+  mapContainer: {
+    borderRadius: SIZES.radius,
+    overflow: 'hidden',
+    marginTop: 4,
+  },
   map: {
     width: '100%',
     height: 180,
-    borderRadius: 12,
-    marginTop: 10,
   },
   rsvpWrapper: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    left: 0,
+    right: 0,
     alignItems: 'center',
   },
   rsvpButton: {
     backgroundColor: COLORS.primary,
+    borderRadius: SIZES.radius,
     paddingVertical: 14,
     paddingHorizontal: 60,
-    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: 'rgba(111, 125, 200, 0.25)',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 1,
+    shadowRadius: 35,
+    elevation: 8,
   },
-  rsvpText: { color: COLORS.white, fontSize: 16, fontWeight: '600' },
+  rsvpButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
