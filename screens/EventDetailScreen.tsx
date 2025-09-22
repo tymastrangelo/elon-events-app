@@ -35,7 +35,7 @@ export default function EventDetailScreen() {
           onPress={() => navigation.goBack()}
           style={[styles.backButton, { top: insets.top + 10 }]}
         >
-          <Ionicons name="arrow-back" size={20} color="#333" />
+          <Ionicons name="arrow-back" size={20} color={COLORS.textSecondary} />
         </TouchableOpacity>
 
         {/* Bookmark Button */}

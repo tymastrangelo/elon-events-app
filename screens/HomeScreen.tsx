@@ -23,6 +23,7 @@ import {
   Event,
   Club,
 } from '../data/mockData';
+import { COLORS, SIZES } from '../theme';
 
 export default function HomeScreen() {
   const navigation = useNavigation<
@@ -42,26 +43,26 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-          <Feather name="menu" size={24} color="#333" />
+          <Feather name="menu" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
         <View>
           <Text style={styles.locationLabel}>Current Location</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={styles.locationText}>Elon University</Text>
-            <Feather name="chevron-down" size={14} color="#666" />
+            <Feather name="chevron-down" size={14} color={COLORS.textSubtle} />
           </View>
         </View>
         <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={24} color="#333" />
+          <Ionicons name="notifications-outline" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
 
       {/* Search + Filters */}
       <View style={styles.searchBox}>
-        <Ionicons name="search-outline" size={18} color="#888" style={{ marginRight: 6 }} />
-        <TextInput placeholder="Search events..." placeholderTextColor="#aaa" style={{ flex: 1 }} />
+        <Ionicons name="search-outline" size={18} color={COLORS.textMuted} style={{ marginRight: 6 }} />
+        <TextInput placeholder="Search events..." placeholderTextColor={COLORS.textMuted} style={{ flex: 1 }} />
         <TouchableOpacity onPress={() => setFiltersVisible(true)}>
-          <Text style={{ color: '#5669FF', fontWeight: '500' }}>Filters</Text>
+          <Text style={{ color: COLORS.primary, fontWeight: '500' }}>Filters</Text>
         </TouchableOpacity>
       </View>
 
@@ -86,7 +87,7 @@ export default function HomeScreen() {
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle}>{event.title}</Text>
                 <View style={styles.eventMeta}>
-                  <Feather name="map-pin" size={14} color="#666" />
+                  <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
                   <Text style={styles.eventLocation}>{event.location}</Text>
                 </View>
                 <Text style={styles.attendees}>{event.attendees} going</Text>
@@ -110,7 +111,7 @@ export default function HomeScreen() {
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle}>{event.title}</Text>
                 <View style={styles.eventMeta}>
-                  <Feather name="map-pin" size={14} color="#666" />
+                  <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
                   <Text style={styles.eventLocation}>{event.location}</Text>
                 </View>
                 <Text style={styles.attendees}>{event.attendees} going</Text>
@@ -134,7 +135,7 @@ export default function HomeScreen() {
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle}>{event.title}</Text>
                 <View style={styles.eventMeta}>
-                  <Feather name="map-pin" size={14} color="#666" />
+                  <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
                   <Text style={styles.eventLocation}>{event.location}</Text>
                 </View>
                 <Text style={styles.attendees}>{event.attendees} going</Text>
@@ -172,20 +173,20 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: COLORS.background, paddingHorizontal: SIZES.padding },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 6,
   },
-  locationLabel: { fontSize: 12, color: '#888' },
-  locationText: { fontSize: 14, fontWeight: '600', color: '#333', marginRight: 4 },
+  locationLabel: { fontSize: 12, color: COLORS.textMuted },
+  locationText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary, marginRight: 4 },
   searchBox: {
     marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: COLORS.input,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
@@ -198,13 +199,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 12,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#222' },
+  sectionTitle: { fontSize: 18, fontWeight: '600', color: COLORS.textPrimary },
   eventCard: {
     width: 220,
     marginRight: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 6,
@@ -221,30 +222,30 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: 'red',
+    backgroundColor: COLORS.live,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   liveText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
     fontSize: 10,
   },
   eventInfo: { padding: 10 },
-  eventTitle: { fontSize: 16, fontWeight: '500', color: '#222', marginBottom: 4 },
+  eventTitle: { fontSize: 16, fontWeight: '500', color: COLORS.textPrimary, marginBottom: 4 },
   eventMeta: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  eventLocation: { fontSize: 13, color: '#666', marginLeft: 4 },
-  attendees: { fontSize: 12, color: '#5669FF', fontWeight: '500' },
+  eventLocation: { fontSize: 13, color: COLORS.textSubtle, marginLeft: 4 },
+  attendees: { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
   clubCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
     borderRadius: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.card,
     marginBottom: 12,
   },
   clubImage: { width: 60, height: 60, borderRadius: 10, marginRight: 12 },
-  clubName: { fontSize: 16, fontWeight: '600', color: '#222' },
-  clubDesc: { fontSize: 13, color: '#555', marginTop: 4 },
+  clubName: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary },
+  clubDesc: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
 });

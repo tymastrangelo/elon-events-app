@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackNavigationProp, EventsStackParamList } from '../navigation/types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { exploreEvents as mockEvents, Event } from '../data/mockData';
+import { COLORS, SIZES } from '../theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -66,7 +67,7 @@ export default function EventsScreen() {
         <Text style={styles.date}>{item.date}</Text>
         <Text style={styles.title}>{item.title}</Text>
         <View style={styles.metaRow}>
-          <Feather name="map-pin" size={14} color="#666" />
+          <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
           <Text style={styles.location}>{item.location}</Text>
         </View>
         <Text style={styles.attendees}>{item.attendees} going</Text>
@@ -81,18 +82,18 @@ export default function EventsScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Events</Text>
           <TouchableOpacity onPress={handleSearchToggle}>
-            <Feather name={searchActive ? 'x' : 'search'} size={20} color="#333" />
+            <Feather name={searchActive ? 'x' : 'search'} size={20} color={COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Search Input */}
         {searchActive && (
           <View style={styles.searchWrapper}>
-            <Feather name="search" size={16} color="#999" style={{ marginRight: 6 }} />
+            <Feather name="search" size={16} color={COLORS.textMuted} style={{ marginRight: 6 }} />
             <TextInput
               ref={inputRef}
               placeholder="Search events..."
-              placeholderTextColor="#aaa"
+              placeholderTextColor={COLORS.textMuted}
               style={styles.searchInput}
               value={search}
               onChangeText={setSearch}
@@ -140,8 +141,8 @@ export default function EventsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#fff' },
-  container: { flex: 1, paddingHorizontal: 20, backgroundColor: '#fff' },
+  safeArea: { flex: 1, backgroundColor: COLORS.background },
+  container: { flex: 1, paddingHorizontal: SIZES.padding, backgroundColor: COLORS.background },
   header: {
     marginTop: 10,
     marginBottom: 12,
@@ -152,12 +153,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#222',
+    color: COLORS.textPrimary,
   },
   searchWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f3f3f3',
+    backgroundColor: COLORS.input,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -167,12 +168,12 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: COLORS.textSecondary,
   },
   toggleWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#f3f3f3',
+    backgroundColor: COLORS.input,
     borderRadius: 50,
     padding: 4,
     marginBottom: 16,
@@ -185,8 +186,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   activeToggleButton: {
-    backgroundColor: '#fff',
-    shadowColor: '#ccc',
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.border,
     shadowOpacity: 0.15,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
@@ -195,14 +196,14 @@ const styles = StyleSheet.create({
   toggleText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#888',
+    color: COLORS.textMuted,
   },
   activeToggleText: {
-    color: '#5669FF',
+    color: COLORS.primary,
   },
   eventCard: {
     flexDirection: 'row',
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     marginBottom: 16,
     padding: 12,
@@ -219,13 +220,13 @@ const styles = StyleSheet.create({
   },
   date: {
     fontSize: 13,
-    color: '#5669FF',
+    color: COLORS.primary,
     marginBottom: 4,
   },
   title: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#222',
+    color: COLORS.textPrimary,
     marginBottom: 4,
   },
   metaRow: {
@@ -234,12 +235,12 @@ const styles = StyleSheet.create({
   },
   location: {
     fontSize: 13,
-    color: '#666',
+    color: COLORS.textSubtle,
     marginLeft: 4,
   },
   attendees: {
     fontSize: 12,
-    color: '#999',
+    color: COLORS.textMuted,
     marginTop: 4,
   },
   blurOverlay: {
@@ -248,7 +249,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(250,250,250,0.9)',
+    backgroundColor: COLORS.overlay,
     zIndex: 0,
   },
 });

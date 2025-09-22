@@ -3,7 +3,7 @@ const { width, height } = Dimensions.get('window');
 
 export const COLORS = {
   // Base
-  primary: '#5669FF', // The main brand color
+  primary: '#73000A', // Elon Maroon
   white: '#FFFFFF',
   black: '#222222',
 
@@ -20,7 +20,8 @@ export const COLORS = {
   overlay: 'rgba(250,250,250,0.9)',
 
   // Accents & States
-  primaryLight: '#EEF0FF',
+  accent: '#B59A57', // Elon Gold
+  primaryLight: '#F7E6E7', // A light tint of the primary maroon
   destructive: '#FF3B30',
   live: 'red',
   border: '#EEEEEE',

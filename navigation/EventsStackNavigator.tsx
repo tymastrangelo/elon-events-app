@@ -1,15 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import EventsScreen from '../screens/EventsScreen';
-import EventDetailScreen from '../screens/EventDetailScreen';
-
-type Event = {
-  id: number;
-  title: string;
-  location: string;
-  attendees: string;
-  image: string;
-};
 
 export type EventsStackParamList = {
   EventsHome: undefined;

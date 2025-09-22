@@ -24,6 +24,7 @@ const eventsWithCoords: Event[] = [...myEvents, ...exploreEvents].filter(e => e.
 
 // Import the centralized navigation types
 import { RootStackNavigationProp } from '../navigation/types';
+import { COLORS, SIZES } from '../theme';
 
 export default function MapScreen() {
   // Since MapScreen is inside the TabNavigator, which is inside the Drawer,
@@ -41,7 +42,7 @@ export default function MapScreen() {
       <View style={styles.headerWrapper}>
         <Text style={styles.header}>Campus Map</Text>
         <TouchableOpacity onPress={() => modalRef.current?.open()}>
-          <Feather name="list" size={20} color="#5669FF" />
+          <Feather name="list" size={20} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
@@ -71,8 +72,8 @@ export default function MapScreen() {
       <Modalize
         ref={modalRef}
         adjustToContentHeight
-        modalStyle={{ borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
-        handleStyle={{ backgroundColor: '#ccc' }}
+        modalStyle={{ borderTopLeftRadius: SIZES.radius, borderTopRightRadius: SIZES.radius }}
+        handleStyle={{ backgroundColor: COLORS.border }}
         withHandle
       >
         <View style={styles.modalContent}>
@@ -90,7 +91,7 @@ export default function MapScreen() {
             ))}
           </View>
 
-          <ScrollView contentContainerStyle={{ padding: 20 }}>
+          <ScrollView contentContainerStyle={{ padding: SIZES.padding }}>
             {getFilteredEvents().map((event) => (
               <TouchableOpacity
                 key={event.id}
@@ -118,13 +119,13 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
     paddingTop: Platform.OS === 'android' ? 35 : 0,
   },
   headerWrapper: {
-    paddingHorizontal: 20,
+    paddingHorizontal: SIZES.padding,
     paddingBottom: 10,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -133,23 +134,23 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#222',
+    color: COLORS.textPrimary,
   },
   map: {
     flex: 1,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
   tabBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#f3f3f3',
+    backgroundColor: COLORS.input,
     borderRadius: 50,
     padding: 4,
-    marginHorizontal: 20,
+    marginHorizontal: SIZES.padding,
     marginTop: 12,
   },
   tab: {
@@ -159,8 +160,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   activeTab: {
-    backgroundColor: '#fff',
-    shadowColor: '#ccc',
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.border,
     shadowOpacity: 0.15,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
@@ -169,17 +170,17 @@ const styles = StyleSheet.create({
   tabText: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#888',
+    color: COLORS.textMuted,
   },
   activeTabText: {
-    color: '#5669FF',
+    color: COLORS.primary,
   },
   eventCard: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
     padding: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: COLORS.card,
     borderRadius: 10,
   },
   thumbnail: {
@@ -191,16 +192,16 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#222',
+    color: COLORS.textPrimary,
   },
   eventLocation: {
     fontSize: 13,
-    color: '#666',
+    color: COLORS.textSubtle,
     marginTop: 2,
   },
   attendees: {
     fontSize: 12,
-    color: '#5669FF',
+    color: COLORS.primary,
     marginTop: 4,
   },
 });
