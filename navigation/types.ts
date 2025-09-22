@@ -29,3 +29,11 @@ export type EventsStackParamList = {
   EventList: undefined; // The main list screen
   EventDetail: { event: Event };
 };
+
+/**
+ * The stack navigator for the "Explore" tab (HomeScreen).
+ */
+export type ExploreStackParamList = {
+  ExploreHome: undefined;
+  ClubDetail: { club: Club };
+};

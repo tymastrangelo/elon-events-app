@@ -13,6 +13,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackParamList } from '../navigation/types'; // Import the shared type
 import { Event } from '../data/mockData'; // Import the main Event type
+import { COLORS, SIZES } from '../theme';
 
 export default function EventDetailScreen() {
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -45,7 +46,7 @@ export default function EventDetailScreen() {
           <Ionicons
             name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
             size={20}
-            color={isBookmarked ? '#5669FF' : '#333'}
+            color={isBookmarked ? COLORS.primary : COLORS.textSecondary}
           />
         </TouchableOpacity>
 
@@ -80,7 +81,7 @@ export default function EventDetailScreen() {
           {/* Date */}
           {event.date && (
             <View style={styles.row}>
-              <Feather name="calendar" size={16} color="#888" />
+              <Feather name="calendar" size={16} color={COLORS.textMuted} />
               <Text style={styles.metaText}>{event.date}</Text>
             </View>
           )}
@@ -137,8 +138,8 @@ export default function EventDetailScreen() {
 
 const styles = StyleSheet.create({
   pageContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
+    flex: 1, // Use constants for colors
+    backgroundColor: COLORS.background,
     position: 'relative',
   },
   scrollContent: {
@@ -149,23 +150,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     zIndex: 10,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 20,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
   },
   bookmarkButton: {
-    position: 'absolute',
+    position: 'absolute', // Use constants for colors
     right: 20,
     zIndex: 10,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 20,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -182,18 +183,18 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#fff',
+    borderWidth: 1, // Use constants for colors
+    borderColor: COLORS.white,
     marginRight: -8,
   },
-  attendeeText: { fontWeight: '500', color: '#5669FF' },
+  attendeeText: { fontWeight: '500', color: COLORS.primary },
   title: { fontSize: 24, fontWeight: '700', marginBottom: 10 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
   },
-  metaText: { marginLeft: 8, color: '#666', fontSize: 14 },
+  metaText: { marginLeft: 8, color: COLORS.textSubtle, fontSize: 14 },
   organizerCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
   },
   organizerAvatar: { width: 40, height: 40, borderRadius: 20 },
   organizerName: { fontWeight: '600', fontSize: 15 },
-  organizerLabel: { color: '#999', fontSize: 13 },
+  organizerLabel: { color: COLORS.textMuted, fontSize: 13 },
   sectionTitle: {
     fontWeight: '600',
     fontSize: 16,
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 15,
-    color: '#333',
+    color: COLORS.textSecondary,
     lineHeight: 22,
   },
   map: {
@@ -227,11 +228,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rsvpButton: {
-    backgroundColor: '#5669FF',
+    backgroundColor: COLORS.primary,
     paddingVertical: 14,
     paddingHorizontal: 60,
     borderRadius: 12,
     alignItems: 'center',
   },
-  rsvpText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  rsvpText: { color: COLORS.white, fontSize: 16, fontWeight: '600' },
 });

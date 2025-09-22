@@ -11,10 +11,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-import { ExploreStackParamList } from '../navigation/ExploreStackNavigator';
+import { useNavigation, DrawerActions, CompositeNavigationProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackNavigationProp, ExploreStackParamList } from '../navigation/types';
 import FiltersModal from '../components/FiltersModal';
 import {
   myEvents,
@@ -26,7 +25,12 @@ import {
 } from '../data/mockData';
 
 export default function HomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<ExploreStackParamList>>();
+  const navigation = useNavigation<
+    CompositeNavigationProp<
+      StackNavigationProp<ExploreStackParamList, 'ExploreHome'>,
+      RootStackNavigationProp
+    >
+  >();
   const [filtersVisible, setFiltersVisible] = useState(false);
 
   const handleApplyFilters = (filters: any) => {
