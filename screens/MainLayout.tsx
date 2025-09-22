@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { COLORS } from '../theme';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
@@ -15,7 +16,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
   },
   content: {
     flex: 1,

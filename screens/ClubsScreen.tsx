@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { COLORS, SIZES } from '../theme';
 import { clubs, Club } from '../data/mockData'; // ✅ import shared mock data
 
 const clubCategories = ['All', 'Academic', 'Cultural', 'Service', 'Sports', 'Music', 'Arts'];
@@ -31,7 +32,7 @@ export default function ClubsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-          <Feather name="menu" size={24} color="#333" />
+          <Feather name="menu" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Clubs</Text>
         <View style={{ width: 24 }} />
@@ -40,8 +41,8 @@ export default function ClubsScreen() {
       {/* Search Bar */}
       <TextInput
         style={styles.searchBar}
-        placeholder="Search clubs..."
-        placeholderTextColor="#999"
+        placeholder="Search for clubs..."
+        placeholderTextColor={COLORS.textMuted}
         value={searchQuery}
         onChangeText={setSearchQuery}
       />
@@ -91,9 +92,7 @@ export default function ClubsScreen() {
                 <Text style={styles.clubName}>{club.name}</Text>
                 <Text style={styles.clubCategory}>{club.category}</Text>
                 <Text style={styles.clubDescription}>{club.description}</Text>
-                <View
-                  style={[styles.joinButton, club.joined && { backgroundColor: '#999' }]}
-                >
+                <View style={[styles.joinButton, club.joined && styles.joinedButton]}>
                   <Text style={styles.joinButtonText}>
                     {club.joined ? 'Joined' : 'Join'}
                   </Text>
@@ -110,8 +109,8 @@ export default function ClubsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: SIZES.padding,
   },
   header: {
     marginTop: 10,
@@ -123,15 +122,15 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#222',
+    color: COLORS.textPrimary,
   },
   searchBar: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
+    backgroundColor: COLORS.input,
+    borderRadius: SIZES.radius,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#333',
+    color: COLORS.textSecondary,
     marginBottom: 10,
   },
   categoryWrapper: {
@@ -147,26 +146,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#eee',
+    backgroundColor: COLORS.input,
     marginRight: 10,
   },
   activeCategoryChip: {
-    backgroundColor: '#222',
+    backgroundColor: COLORS.primary,
   },
   categoryText: {
     fontSize: 14,
-    color: '#333',
+    color: COLORS.textSecondary,
   },
   activeCategoryText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '600',
   },
   clubList: {
     paddingBottom: 100,
   },
   emptyState: {
-    fontSize: 14,
-    color: '#999',
+    fontSize: SIZES.font,
+    color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 50,
   },
@@ -174,8 +173,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#f9f9f9',
     borderRadius: 12,
-    marginBottom: 16,
-    padding: 12,
+    marginBottom: SIZES.base * 2,
+    padding: SIZES.base * 1.5,
     alignItems: 'center',
   },
   clubImage: {
@@ -190,27 +189,30 @@ const styles = StyleSheet.create({
   clubName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#222',
+    color: COLORS.textPrimary,
   },
   clubCategory: {
     fontSize: 12,
-    color: '#999',
+    color: COLORS.textMuted,
     marginBottom: 4,
   },
   clubDescription: {
     fontSize: 13,
-    color: '#444',
+    color: COLORS.textSecondary,
     marginBottom: 8,
   },
   joinButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#5669FF',
+    backgroundColor: COLORS.primary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
   },
+  joinedButton: {
+    backgroundColor: COLORS.textMuted,
+  },
   joinButtonText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 14,
     fontWeight: '600',
   },

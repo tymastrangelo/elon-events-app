@@ -1,40 +1,41 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
-import MapScreen from '../screens/MapScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import ExploreStackNavigator from './ExploreStackNavigator';
 import EventsStackNavigator from './EventsStackNavigator';
+import MapScreen from '../screens/MapScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+
+import { COLORS, SIZES } from '../theme';
 
 const Tab = createBottomTabNavigator();
 
-export default function TabNavigator() {
+const TabNavigator = () => {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#5669FF',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textSubtle,
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#eee',
-          height: 75,
-          paddingBottom: 10,
+          backgroundColor: COLORS.background,
+          borderTopColor: COLORS.border,
         },
-        tabBarIcon: ({ color, size }) => {
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: any;
+
           if (route.name === 'Explore') {
-            return <Feather name="compass" size={size} color={color} />;
+            iconName = focused ? 'compass' : 'compass-outline';
+          } else if (route.name === 'Events') {
+            iconName = focused ? 'calendar' : 'calendar-outline';
+          } else if (route.name === 'Map') {
+            iconName = focused ? 'map' : 'map-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
           }
-          if (route.name === 'Events') {
-            return <Feather name="calendar" size={size} color={color} />;
-          }
-          if (route.name === 'Map') {
-            return <Ionicons name="map-outline" size={size} color={color} />;
-          }
-          if (route.name === 'Profile') {
-            return <Feather name="user" size={size} color={color} />;
-          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
     >
@@ -44,4 +45,6 @@ export default function TabNavigator() {
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
-}
+};
+
+export default TabNavigator;

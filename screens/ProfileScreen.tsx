@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import MainLayout from './MainLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { COLORS, SIZES } from '../theme';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -23,7 +24,7 @@ export default function ProfileScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.container,
-          { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 40 },
+          { paddingTop: insets.top + SIZES.padding, paddingBottom: insets.bottom + SIZES.padding * 2 },
         ]}
       >
         {/* Profile Header */}
@@ -35,7 +36,7 @@ export default function ProfileScreen() {
           <Text style={styles.name}>{name}</Text>
           <Text style={styles.handle}>{handle}</Text>
           <TouchableOpacity style={styles.editButton}>
-            <Feather name="edit-2" size={16} color="#5669FF" />
+            <Feather name="edit-2" size={16} color={COLORS.primary} />
             <Text style={styles.editText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
@@ -58,15 +59,15 @@ export default function ProfileScreen() {
 
         {/* Menu Options */}
         <View style={styles.menuSection}>
-          <MenuItem icon="bookmark" label="My Saved Events" />
-          <MenuItem icon="users" label="My Clubs" />
-          <MenuItem icon="bell" label="Notification Settings" />
-          <MenuItem icon="message-square" label="Feedback / Support" />
+          <MenuItem icon="bookmark-outline" label="My Saved Events" />
+          <MenuItem icon="people-outline" label="My Clubs" />
+          <MenuItem icon="notifications-outline" label="Notification Settings" />
+          <MenuItem icon="help-circle-outline" label="Feedback / Support" />
         </View>
 
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton}>
-          <Feather name="log-out" size={16} color="#fff" />
+          <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -76,8 +77,8 @@ export default function ProfileScreen() {
 
 function MenuItem({ icon, label }: { icon: any; label: string }) {
   return (
-    <TouchableOpacity style={styles.menuItem}>
-      <Feather name={icon} size={18} color="#5669FF" />
+    <TouchableOpacity style={styles.menuItem} activeOpacity={0.6}>
+      <Ionicons name={icon} size={20} color={COLORS.primary} />
       <Text style={styles.menuLabel}>{label}</Text>
     </TouchableOpacity>
   );
@@ -85,7 +86,7 @@ function MenuItem({ icon, label }: { icon: any; label: string }) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: SIZES.padding,
   },
   profileHeader: {
     alignItems: 'center',
@@ -100,24 +101,24 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#222',
+    color: COLORS.textPrimary,
   },
   handle: {
-    color: '#666',
+    color: COLORS.textSubtle,
     fontSize: 14,
-    marginBottom: 10,
+    marginBottom: SIZES.base * 1.5,
   },
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF0FF',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    backgroundColor: COLORS.primaryLight,
+    paddingVertical: SIZES.base,
+    paddingHorizontal: SIZES.base * 2,
+    borderRadius: SIZES.radius * 2,
   },
   editText: {
-    marginLeft: 6,
-    color: '#5669FF',
+    marginLeft: SIZES.base,
+    color: COLORS.primary,
     fontWeight: '500',
   },
   statsContainer: {
@@ -132,42 +133,42 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#222',
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
   statLabel: {
-    color: '#666',
+    color: COLORS.textSubtle,
     fontSize: 13,
   },
   menuSection: {
     marginBottom: 30,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: COLORS.border,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderColor: '#eee',
+    borderColor: COLORS.border,
   },
   menuLabel: {
-    marginLeft: 12,
+    marginLeft: SIZES.padding,
     fontSize: 15,
-    color: '#333',
+    color: COLORS.textSecondary,
   },
   logoutButton: {
-    backgroundColor: '#5669FF',
+    backgroundColor: COLORS.primary,
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: SIZES.radius,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: SIZES.base,
   },
   logoutText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 15,
     fontWeight: '600',
   },

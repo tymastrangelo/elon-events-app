@@ -1,10 +1,12 @@
 // navigation/DrawerNavigator.tsx
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS } from '../theme';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import TabNavigator from './TabNavigator';
 import ClubsScreen from '../screens/ClubsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import CustomDrawer from '../components/CustomDrawer';
+import CustomDrawerContent from './CustomDrawerContent';
 import ClubsStackNavigator from './ClubsStackNavigator';
 
 const Drawer = createDrawerNavigator();
@@ -18,15 +20,38 @@ export default function DrawerNavigator() {
         headerShown: false,
         overlayColor: 'rgba(0,0,0,0.1)',
         drawerStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: COLORS.card,
           width: 250,
         },
+        drawerActiveTintColor: COLORS.primary,
+        drawerInactiveTintColor: COLORS.textSecondary,
+        drawerLabelStyle: {
+          fontWeight: '500',
+        },
       }}
-      drawerContent={(props) => <CustomDrawer {...props} />}
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
-      <Drawer.Screen name="Main" component={TabNavigator} />
-      <Drawer.Screen name="Clubs" component={ClubsStackNavigator} />
-      <Drawer.Screen name="Settings" component={SettingsScreen} />
+      <Drawer.Screen
+        name="Main"
+        component={TabNavigator}
+        options={{
+          drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
+        }}
+      />
+      <Drawer.Screen
+        name="Clubs"
+        component={ClubsStackNavigator}
+        options={{
+          drawerIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
+        }}
+      />
+      <Drawer.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          drawerItemStyle: { display: 'none' }, // Hides it from the main list
+        }}
+      />
     </Drawer.Navigator>
   );
 }

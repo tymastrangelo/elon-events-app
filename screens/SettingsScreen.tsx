@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { COLORS, SIZES } from '../theme';
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -39,7 +40,7 @@ export default function SettingsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
-          <Feather name="menu" size={24} color="#333" />
+          <Feather name="menu" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
         <Text style={styles.headerText}>Settings</Text>
         <View style={{ width: 24 }} />
@@ -54,8 +55,8 @@ export default function SettingsScreen() {
           <Switch
             value={darkMode}
             onValueChange={setDarkMode}
-            thumbColor={darkMode ? '#5669FF' : '#ccc'}
-            trackColor={{ false: '#ccc', true: '#b2bfff' }}
+            thumbColor={darkMode ? COLORS.primary : COLORS.border}
+            trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
           />
         </View>
 
@@ -64,8 +65,8 @@ export default function SettingsScreen() {
           <Switch
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
-            thumbColor={notificationsEnabled ? '#5669FF' : '#ccc'}
-            trackColor={{ false: '#ccc', true: '#b2bfff' }}
+            thumbColor={notificationsEnabled ? COLORS.primary : COLORS.border}
+            trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
           />
         </View>
       </View>
@@ -78,7 +79,7 @@ export default function SettingsScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleDeleteAccount} style={[styles.button, styles.deleteBtn]}>
-          <Text style={[styles.buttonText, { color: '#ff3b30' }]}>Delete Account</Text>
+          <Text style={[styles.buttonText, { color: COLORS.destructive }]}>Delete Account</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -88,8 +89,8 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: SIZES.padding,
   },
   header: {
     marginTop: 10,
@@ -101,20 +102,20 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#222',
+    color: COLORS.textPrimary,
   },
   section: {
     marginBottom: 30,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#333',
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
     marginBottom: 10,
   },
   row: {
-    backgroundColor: '#f4f4f4',
-    borderRadius: 10,
+    backgroundColor: COLORS.card,
+    borderRadius: SIZES.radius,
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginBottom: 10,
@@ -124,21 +125,21 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     fontSize: 15,
-    color: '#333',
+    color: COLORS.textSecondary,
   },
   button: {
-    backgroundColor: '#f4f4f4',
-    borderRadius: 10,
+    backgroundColor: COLORS.card,
+    borderRadius: SIZES.radius,
     paddingVertical: 14,
     paddingHorizontal: 16,
     marginBottom: 10,
   },
   deleteBtn: {
-    backgroundColor: '#ffecec',
+    backgroundColor: `${COLORS.destructive}1A`, // Destructive with ~10% opacity
   },
   buttonText: {
     fontSize: 15,
-    color: '#333',
+    color: COLORS.textSecondary,
     fontWeight: '500',
     textAlign: 'center',
   },
