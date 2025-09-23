@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import { useNavigation, CompositeNavigationProp } from '@react-navigation/native
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackNavigationProp, EventsStackParamList } from '../navigation/types';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { exploreEvents as mockEvents, Event } from '../data/mockData';
+import { exploreEvents, myEvents, recommendedEvents, Event } from '../data/mockData';
 import { COLORS, SIZES } from '../theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -26,12 +26,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 export default function EventsScreen() {
   // Combine types for the local stack and the root stack for full type safety
-  const navigation = useNavigation<
-    CompositeNavigationProp<
-      StackNavigationProp<EventsStackParamList, 'EventList'>,
-      RootStackNavigationProp
-    >
-  >();
+  const navigation = useNavigation<RootStackNavigationProp>();
   const [searchActive, setSearchActive] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'Upcoming' | 'Ongoing' | 'Past'>('Upcoming');
@@ -51,9 +46,25 @@ export default function EventsScreen() {
     }, 200);
   };
 
-  const filteredEvents = mockEvents.filter((event) =>
-    event.title.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredEvents = useMemo(() => {
+    const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
+    let events: Event[] = [];
+
+    // 1. Filter by active tab
+    if (activeTab === 'Ongoing') {
+      events = allEvents.filter((event) => event.isLive);
+    } else if (activeTab === 'Upcoming') {
+      events = allEvents.filter((event) => !event.isLive);
+    } else if (activeTab === 'Past') {
+      events = []; // No data for past events yet
+    }
+
+    // 2. Filter by search query
+    if (search) {
+      return events.filter((event) => event.title.toLowerCase().includes(search.toLowerCase()));
+    }
+    return events;
+  }, [activeTab, search]);
 
   const renderEvent = ({ item }: { item: Event }) => (
     <TouchableOpacity

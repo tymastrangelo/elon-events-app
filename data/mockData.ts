@@ -172,7 +172,6 @@ export const exploreEvents: Event[] = [
     contactEmail: 'contact@elonbands.org',
     externalLink: 'https://elonmusicsociety.org/events',
     category: 'Music & Arts',
-    isLive: false,
   },
   {
     id: 2,

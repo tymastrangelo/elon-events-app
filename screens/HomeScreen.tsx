@@ -41,9 +41,11 @@ export default function HomeScreen() {
 
   // Memoized filtering to prevent re-calculation on every render
   const filteredLiveEvents = useMemo(() => {
-    if (!searchQuery) return myEvents.filter((e) => e.isLive);
-    return myEvents.filter(
-      (e) => e.isLive && e.title.toLowerCase().includes(searchQuery.toLowerCase())
+    const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
+    const liveEvents = allEvents.filter((e) => e.isLive);
+    if (!searchQuery) return liveEvents;
+    return liveEvents.filter((e) =>
+      e.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery]);
 
