@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { mockPosts } from '../data/mockData';
@@ -6,6 +6,18 @@ import PostCard from '../components/PostCard';
 import { COLORS, SIZES } from '../theme';
 
 export default function FeedScreen() {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // In a real app, you would re-fetch your posts here.
+    // We'll simulate it with a timeout.
+    setTimeout(() => {
+      // Here you would update your posts data if it changed
+      setRefreshing(false);
+    }, 1500);
+  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
       <View style={styles.container}>
@@ -22,6 +34,8 @@ export default function FeedScreen() {
           style={styles.list}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 120 }}
+          onRefresh={onRefresh}
+          refreshing={refreshing}
         />
       </View>
     </SafeAreaView>
