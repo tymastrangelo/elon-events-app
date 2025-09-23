@@ -1,5 +1,5 @@
 // screens/HomeScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -33,10 +33,38 @@ export default function HomeScreen() {
     >
   >();
   const [filtersVisible, setFiltersVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleApplyFilters = (filters: any) => {
     console.log('Filters applied:', filters);
   };
+
+  // Memoized filtering to prevent re-calculation on every render
+  const filteredLiveEvents = useMemo(() => {
+    if (!searchQuery) return myEvents.filter((e) => e.isLive);
+    return myEvents.filter(
+      (e) => e.isLive && e.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const filteredUpcomingEvents = useMemo(() => {
+    if (!searchQuery) return exploreEvents;
+    return exploreEvents.filter((event) =>
+      event.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const filteredRecommendedEvents = useMemo(() => {
+    if (!searchQuery) return recommendedEvents;
+    return recommendedEvents.filter((event) =>
+      event.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const filteredClubs = useMemo(() => {
+    if (!searchQuery) return clubs;
+    return clubs.filter((club) => club.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [searchQuery]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -60,7 +88,13 @@ export default function HomeScreen() {
       {/* Search + Filters */}
       <View style={styles.searchBox}>
         <Ionicons name="search-outline" size={18} color={COLORS.textMuted} style={{ marginRight: 6 }} />
-        <TextInput placeholder="Search events..." placeholderTextColor={COLORS.textMuted} style={{ flex: 1 }} />
+        <TextInput
+          placeholder="Search events and clubs..."
+          placeholderTextColor={COLORS.textMuted}
+          style={{ flex: 1, color: COLORS.textPrimary }}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
         <TouchableOpacity onPress={() => setFiltersVisible(true)}>
           <Text style={{ color: COLORS.primary, fontWeight: '500' }}>Filters</Text>
         </TouchableOpacity>
@@ -68,11 +102,13 @@ export default function HomeScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* LIVE EVENTS */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Live Events</Text>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {myEvents.filter(e => e.isLive).map((event) => (
+        {filteredLiveEvents.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Live Events</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {filteredLiveEvents.map((event) => (
             <TouchableOpacity
               key={event.id}
               style={styles.eventCard}
@@ -93,15 +129,19 @@ export default function HomeScreen() {
                 <Text style={styles.attendees}>{event.attendees} going</Text>
               </View>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         {/* UPCOMING EVENTS */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Events</Text>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {exploreEvents.map((event) => (
+        {filteredUpcomingEvents.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Upcoming Events</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {filteredUpcomingEvents.map((event) => (
             <TouchableOpacity
               key={event.id}
               style={styles.eventCard}
@@ -117,15 +157,19 @@ export default function HomeScreen() {
                 <Text style={styles.attendees}>{event.attendees} going</Text>
               </View>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         {/* RECOMMENDED */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recommended</Text>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {recommendedEvents.map((event) => (
+        {filteredRecommendedEvents.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recommended</Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {filteredRecommendedEvents.map((event) => (
             <TouchableOpacity
               key={event.id}
               style={styles.eventCard}
@@ -141,26 +185,32 @@ export default function HomeScreen() {
                 <Text style={styles.attendees}>{event.attendees} going</Text>
               </View>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         {/* CLUBS */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Your Clubs</Text>
-        </View>
-        {clubs.map((club) => (
-          <TouchableOpacity
-            key={club.id}
-            style={styles.clubCard}
-            onPress={() => navigation.navigate('ClubDetail', { club })}
-          >
-            <Image source={{ uri: club.image }} style={styles.clubImage} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.clubName}>{club.name}</Text>
-              <Text style={styles.clubDesc}>{club.description}</Text>
+        {filteredClubs.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Clubs</Text>
             </View>
-          </TouchableOpacity>
-        ))}
+            {filteredClubs.map((club) => (
+              <TouchableOpacity
+                key={club.id}
+                style={styles.clubCard}
+                onPress={() => navigation.navigate('ClubDetail', { club })}
+              >
+                <Image source={{ uri: club.image }} style={styles.clubImage} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.clubName}>{club.name}</Text>
+                  <Text style={styles.clubDesc}>{club.description}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </>
+        )}
       </ScrollView>
 
       <FiltersModal
