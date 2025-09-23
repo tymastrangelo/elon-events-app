@@ -38,6 +38,7 @@ export type Event = {
   category?: string;
   isLive?: boolean; // ✅ changed from `live`
   coordinates?: { latitude: number; longitude: number };
+  saved?: boolean;
 };
 
 // Club Type

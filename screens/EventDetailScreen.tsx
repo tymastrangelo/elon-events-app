@@ -12,16 +12,32 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
-import { RootStackParamList } from '../navigation/types'; // Import the shared type
-import { Event } from '../data/mockData'; // Import the main Event type
+import { RootStackParamList } from '../navigation/types';
+import { Event, myEvents, exploreEvents, recommendedEvents } from '../data/mockData';
 import { COLORS, SIZES } from '../theme';
 
 export default function EventDetailScreen() {
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'EventDetail'>>();
   const { event } = route.params;
+  const [isBookmarked, setIsBookmarked] = useState(event.saved || false);
   const insets = useSafeAreaInsets();
+
+  const handleBookmark = () => {
+    const newBookmarkState = !isBookmarked;
+    setIsBookmarked(newBookmarkState);
+
+    // In a real app, this would be an API call.
+    // For now, we find the event in our mock data arrays and update it.
+    const allEventArrays = [myEvents, exploreEvents, recommendedEvents];
+    for (const eventArray of allEventArrays) {
+      const eventIndex = eventArray.findIndex((e) => e.id === event.id);
+      if (eventIndex !== -1) {
+        eventArray[eventIndex].saved = newBookmarkState;
+        break; // Stop searching once found and updated
+      }
+    }
+  };
 
   const handleMapOpen = () => {
     const encodedLocation = encodeURIComponent(event.location);
@@ -41,7 +57,7 @@ export default function EventDetailScreen() {
 
         {/* Bookmark Button */}
         <TouchableOpacity
-          onPress={() => setIsBookmarked(!isBookmarked)}
+          onPress={handleBookmark}
           style={[styles.bookmarkButton, { top: insets.top + 10 }]}
         >
           <Ionicons

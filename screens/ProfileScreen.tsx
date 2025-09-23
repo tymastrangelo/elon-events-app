@@ -63,7 +63,11 @@ export default function ProfileScreen() {
 
         {/* Menu Options */}
         <View style={styles.menuSection}>
-          <MenuItem icon="bookmark-outline" label="My Saved Events" />
+          <MenuItem
+            icon="bookmark-outline"
+            label="My Saved Events"
+            onPress={() => navigation.navigate('MySavedEvents')}
+          />
           <MenuItem
             icon="people-outline"
             label="My Clubs"

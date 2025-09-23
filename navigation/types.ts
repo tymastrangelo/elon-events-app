@@ -20,6 +20,7 @@ export type RootStackParamList = {
   EventDetail: { event: Event };
   ClubDetail: { club: Club };
   MyClubs: undefined;
+  MySavedEvents: undefined;
 };
 
 export type RootStackNavigationProp = StackNavigationProp<RootStackParamList>;
