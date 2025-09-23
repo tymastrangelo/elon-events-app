@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DrawerNavigator from './navigation/DrawerNavigator';
 import EventDetailScreen from './screens/EventDetailScreen';
 import ClubDetailScreen from './screens/ClubDetailScreen';
+import MyClubsScreen from './screens/MyClubsScreen';
 
 // This will be our main stack that handles app-wide navigation.
 const RootStack = createStackNavigator();
@@ -27,6 +28,11 @@ export default function App() {
           <RootStack.Screen
             name="ClubDetail"
             component={ClubDetailScreen}
+            options={{ headerShown: false }}
+          />
+          <RootStack.Screen
+            name="MyClubs"
+            component={MyClubsScreen}
             options={{ headerShown: false }}
           />
         </RootStack.Navigator>

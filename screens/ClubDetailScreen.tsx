@@ -1,5 +1,5 @@
 // screens/ClubDetailScreen.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Linking, Platform } from 'react-native';
-import { Club, exploreEvents, myEvents, recommendedEvents, Event } from '../data/mockData';
+import { Club, exploreEvents, myEvents, recommendedEvents, Event, clubs } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { COLORS, SIZES } from '../theme';
 
@@ -22,6 +22,7 @@ export default function ClubDetailScreen() {
   const route = useRoute<RouteProp<{ params: { club: Club } }, 'params'>>();
   const { club } = route.params;
   const insets = useSafeAreaInsets();
+  const [isJoined, setIsJoined] = useState(club.joined || false);
 
   // Combine all event sources and filter for events hosted by this club
   const allEvents = [...exploreEvents, ...myEvents, ...recommendedEvents];
@@ -42,6 +43,17 @@ export default function ClubDetailScreen() {
       const email = club.contactEmail;
       const mailto = `mailto:${email}`;
       Linking.openURL(mailto);
+    }
+  };
+
+  const handleJoinClub = () => {
+    // In a real app, this would be an API call.
+    // For now, we'll just toggle the state and update the mock data.
+    const clubIndex = clubs.findIndex((c) => c.id === club.id);
+    if (clubIndex !== -1) {
+      const newJoinedState = !isJoined;
+      setIsJoined(newJoinedState);
+      clubs[clubIndex].joined = newJoinedState; // Update the mock data directly
     }
   };
 
@@ -118,8 +130,11 @@ export default function ClubDetailScreen() {
       </ScrollView>
 
       <View style={[styles.joinWrapper, { bottom: insets.bottom + 10 }]}>
-        <TouchableOpacity style={styles.joinButton}>
-          <Text style={styles.joinButtonText}>Join Club</Text>
+        <TouchableOpacity
+          style={[styles.joinButton, isJoined && styles.joinedButton]}
+          onPress={handleJoinClub}
+        >
+          <Text style={styles.joinButtonText}>{isJoined ? 'Leave Club' : 'Join Club'}</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -260,6 +275,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 35,
     elevation: 8,
+  },
+  joinedButton: {
+    backgroundColor: COLORS.card,
   },
   joinButtonText: {
     color: COLORS.white,

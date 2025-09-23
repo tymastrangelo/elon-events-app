@@ -19,6 +19,7 @@ export type RootStackParamList = {
   MainDrawer: NavigatorScreenParams<DrawerParamList>;
   EventDetail: { event: Event };
   ClubDetail: { club: Club };
+  MyClubs: undefined;
 };
 
 export type RootStackNavigationProp = StackNavigationProp<RootStackParamList>;

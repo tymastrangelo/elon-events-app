@@ -10,11 +10,15 @@ import {
 import MainLayout from './MainLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, SIZES } from '../theme';
+import { clubs } from '../data/mockData';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
 
+  const joinedClubs = clubs.filter((club) => club.joined);
   const name = 'Tyler Mastrangelo';
   const email = 'tmastrangelo@elon.edu';
   const handle = '@' + email.split('@')[0]; // ➜ @tmastrangelo
@@ -52,7 +56,7 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>RSVP’d</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>4</Text>
+            <Text style={styles.statNumber}>{joinedClubs.length}</Text>
             <Text style={styles.statLabel}>Clubs</Text>
           </View>
         </View>
@@ -60,7 +64,11 @@ export default function ProfileScreen() {
         {/* Menu Options */}
         <View style={styles.menuSection}>
           <MenuItem icon="bookmark-outline" label="My Saved Events" />
-          <MenuItem icon="people-outline" label="My Clubs" />
+          <MenuItem
+            icon="people-outline"
+            label="My Clubs"
+            onPress={() => navigation.navigate('MyClubs')}
+          />
           <MenuItem icon="notifications-outline" label="Notification Settings" />
           <MenuItem icon="help-circle-outline" label="Feedback / Support" />
         </View>
@@ -75,9 +83,9 @@ export default function ProfileScreen() {
   );
 }
 
-function MenuItem({ icon, label }: { icon: any; label: string }) {
+function MenuItem({ icon, label, onPress }: { icon: any; label: string; onPress?: () => void }) {
   return (
-    <TouchableOpacity style={styles.menuItem} activeOpacity={0.6}>
+    <TouchableOpacity style={styles.menuItem} activeOpacity={0.6} onPress={onPress}>
       <Ionicons name={icon} size={20} color={COLORS.primary} />
       <Text style={styles.menuLabel}>{label}</Text>
     </TouchableOpacity>

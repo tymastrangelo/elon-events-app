@@ -62,8 +62,10 @@ export default function HomeScreen() {
   }, [searchQuery]);
 
   const filteredClubs = useMemo(() => {
-    if (!searchQuery) return clubs;
-    return clubs.filter((club) => club.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    const joinedClubs = clubs.filter((club) => club.joined);
+    if (!searchQuery) return joinedClubs;
+    return joinedClubs.filter((club) =>
+      club.name.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [searchQuery]);
 
   return (
@@ -194,7 +196,7 @@ export default function HomeScreen() {
         {filteredClubs.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Clubs</Text>
+              <Text style={styles.sectionTitle}>Your Clubs</Text>
             </View>
             {filteredClubs.map((club) => (
               <TouchableOpacity
