@@ -82,7 +82,7 @@ export default function HomeScreen() {
             <Feather name="chevron-down" size={14} color={COLORS.textSubtle} />
           </View>
         </View>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
           <Ionicons name="notifications-outline" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>

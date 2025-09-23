@@ -8,6 +8,7 @@ import EventDetailScreen from './screens/EventDetailScreen';
 import ClubDetailScreen from './screens/ClubDetailScreen';
 import MyClubsScreen from './screens/MyClubsScreen';
 import MySavedEventsScreen from './screens/MySavedEventsScreen';
+import NotificationsScreen from './screens/NotificationsScreen';
 
 // This will be our main stack that handles app-wide navigation.
 const RootStack = createStackNavigator();
@@ -39,6 +40,11 @@ export default function App() {
           <RootStack.Screen
             name="MySavedEvents"
             component={MySavedEventsScreen}
+            options={{ headerShown: false }}
+          />
+          <RootStack.Screen
+            name="Notifications"
+            component={NotificationsScreen}
             options={{ headerShown: false }}
           />
         </RootStack.Navigator>
