@@ -27,6 +27,8 @@ export type Club = {
   description: string;
   image: string;
   joined?: boolean;
+  meetingTimes?: string;
+  contactEmail?: string;
 };
 
 export const myEvents: Event[] = [
@@ -105,6 +107,8 @@ export const clubs: Club[] = [
     description: 'Build projects, attend hackathons, and improve your coding skills.',
     image: 'https://img.icons8.com/fluency/96/code.png',
     joined: true,
+    meetingTimes: 'Tuesdays at 7:00 PM',
+    contactEmail: 'coding@elon.edu',
   },
   {
     id: '2',
@@ -112,6 +116,7 @@ export const clubs: Club[] = [
     category: 'Cultural',
     description: 'Celebrating and supporting the Black community on campus.',
     image: 'https://img.icons8.com/fluency/96/community-grants.png',
+    meetingTimes: 'Bi-weekly on Wednesdays',
     joined: false,
   },
   {
@@ -120,6 +125,7 @@ export const clubs: Club[] = [
     category: 'Sports',
     description: 'Join weekly practices and compete against other universities.',
     image: 'https://img.icons8.com/fluency/96/soccer-ball.png',
+    contactEmail: 'soccer-club@elon.edu',
   },
   {
     id: '4',
@@ -128,5 +134,6 @@ export const clubs: Club[] = [
     description: 'Perform, rehearse, and jam with other student musicians.',
     image: 'https://img.icons8.com/fluency/96/musical-notes.png',
     joined: true,
+    meetingTimes: 'Fridays at 5:00 PM',
   },
 ];

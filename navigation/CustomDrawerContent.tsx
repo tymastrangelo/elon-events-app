@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image, Text } from 'react-native';
 import { DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,11 +7,24 @@ import { COLORS, SIZES } from '../theme';
 
 const CustomDrawerContent = (props: any) => {
   const insets = useSafeAreaInsets();
+  const name = 'Tyler Mastrangelo';
+  const email = 'tmastrangelo@elon.edu';
 
   return (
     <View style={styles.container}>
-      <DrawerContentScrollView {...props} contentContainerStyle={{ paddingTop: insets.top }}>
-        {/* This renders the screens from the navigator that aren't handled manually */}
+      <DrawerContentScrollView
+        {...props}
+        contentContainerStyle={{ paddingTop: 0 }} // Remove padding to allow header to be at the very top
+      >
+        {/* Profile Header */}
+        <View style={[styles.profileHeader, { paddingTop: insets.top + SIZES.base }]}>
+          <Image
+            source={{ uri: 'https://elonphoenix.com/images/2025/8/29/Tyler_Mastrangelo_20250821_XC_Media_Day_JK_1863.jpg?width=146' }}
+            style={styles.avatar}
+          />
+          <Text style={styles.name}>{name}</Text>
+          <Text style={styles.email}>{email}</Text>
+        </View>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
 
@@ -33,6 +46,34 @@ const CustomDrawerContent = (props: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  profileHeader: {
+    paddingHorizontal: SIZES.padding,
+    paddingBottom: SIZES.padding,
+    marginBottom: SIZES.base,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: SIZES.base,
+    // Add a subtle shadow and a fallback background color
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    backgroundColor: COLORS.border,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+  },
+  email: {
+    fontSize: 14,
+    color: COLORS.textSubtle,
   },
   footer: {
     borderTopWidth: 1,

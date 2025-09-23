@@ -9,20 +9,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { RouteProp, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Linking } from 'react-native';
-
-// Define Club type
-export type Club = {
-  id: number;
-  name: string;
-  image: string;
-  description: string;
-  category: string;
-  meetingTimes?: string;
-  contactEmail?: string;
-};
+import { Club } from '../data/mockData';
+import { COLORS, SIZES } from '../theme';
 
 export default function ClubDetailScreen() {
   const navigation = useNavigation();
@@ -43,7 +34,6 @@ export default function ClubDetailScreen() {
   const handleEmail = () => {
     if (club.contactEmail) {
       const email = club.contactEmail;
-      const handle = email.split('@')[0];
       const mailto = `mailto:${email}`;
       Linking.openURL(mailto);
     }
@@ -55,25 +45,39 @@ export default function ClubDetailScreen() {
         onPress={() => navigation.goBack()}
         style={[styles.backButton, { top: insets.top + 10 }]}
       >
-        <Ionicons name="arrow-back" size={20} color="#333" />
+        <Ionicons name="arrow-back" size={20} color={COLORS.textSecondary} />
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Image source={{ uri: club.image }} style={styles.image} />
         <View style={styles.content}>
           <Text style={styles.title}>{club.name}</Text>
-          <Text style={styles.category}>{club.category}</Text>
+          <Text style={styles.category}>{club.category} Club</Text>
 
           {/* Meeting Times */}
           {club.meetingTimes && (
-            <Text style={styles.metaText}>Meets: {club.meetingTimes}</Text>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Feather name="clock" size={24} color={COLORS.primary} />
+              </View>
+              <View>
+                <Text style={styles.infoTitle}>Meeting Times</Text>
+                <Text style={styles.infoSubtitle}>{club.meetingTimes}</Text>
+              </View>
+            </View>
           )}
 
           {/* Contact */}
           {club.contactEmail && (
-            <TouchableOpacity onPress={handleEmail}>
-              <Text style={styles.contact}>Contact: {club.contactEmail}</Text>
-            </TouchableOpacity>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Feather name="mail" size={24} color={COLORS.primary} />
+              </View>
+              <TouchableOpacity onPress={handleEmail}>
+                <Text style={styles.infoTitle}>Contact</Text>
+                <Text style={[styles.infoSubtitle, { color: COLORS.primary }]}>{club.contactEmail}</Text>
+              </TouchableOpacity>
+            </View>
           )}
 
           {/* About */}
@@ -85,7 +89,7 @@ export default function ClubDetailScreen() {
 
       <View style={[styles.joinWrapper, { bottom: insets.bottom + 10 }]}>
         <TouchableOpacity style={styles.joinButton}>
-          <Text style={styles.joinText}>Join Club</Text>
+          <Text style={styles.joinButtonText}>Join Club</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -95,7 +99,7 @@ export default function ClubDetailScreen() {
 const styles = StyleSheet.create({
   pageContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.background,
     position: 'relative',
   },
   scrollContent: {
@@ -109,64 +113,85 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     zIndex: 10,
-    backgroundColor: '#fff',
-    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    borderRadius: SIZES.radius,
     padding: 8,
-    shadowColor: '#000',
+    shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 4,
   },
   content: {
-    padding: 20,
+    padding: SIZES.padding,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
+    color: COLORS.textPrimary,
     marginBottom: 6,
   },
   category: {
     fontSize: 14,
-    color: '#5669FF',
-    marginBottom: 12,
+    color: COLORS.primary,
+    fontWeight: '500',
+    marginBottom: SIZES.padding,
   },
-  metaText: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: SIZES.padding,
   },
-  contact: {
-    fontSize: 14,
-    color: '#007AFF',
-    marginBottom: 20,
+  infoIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: `${COLORS.primary}1A`, // primary with ~10% opacity
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textPrimary,
+  },
+  infoSubtitle: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
   },
   sectionTitle: {
     fontWeight: '600',
-    fontSize: 16,
-    marginTop: 20,
+    fontSize: 18,
     marginBottom: 8,
+    color: COLORS.textPrimary,
   },
   description: {
     fontSize: 15,
-    color: '#333',
+    color: COLORS.textSecondary,
     lineHeight: 22,
   },
   joinWrapper: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    left: SIZES.padding,
+    right: SIZES.padding,
     alignItems: 'center',
   },
   joinButton: {
-    backgroundColor: '#5669FF',
+    backgroundColor: COLORS.primary,
     paddingVertical: 14,
     paddingHorizontal: 60,
-    borderRadius: 12,
+    borderRadius: SIZES.radius,
     alignItems: 'center',
+    shadowColor: 'rgba(111, 125, 200, 0.25)',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 1,
+    shadowRadius: 35,
+    elevation: 8,
   },
-  joinText: {
-    color: '#fff',
+  joinButtonText: {
+    color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
   },

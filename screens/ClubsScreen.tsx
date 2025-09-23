@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  FlatList,
   Image,
   TextInput,
 } from 'react-native';
@@ -77,31 +78,31 @@ export default function ClubsScreen() {
       </View>
 
       {/* Club Cards */}
-      <ScrollView contentContainerStyle={styles.clubList}>
-        {filteredClubs.length === 0 ? (
-          <Text style={styles.emptyState}>No clubs found in this category.</Text>
-        ) : (
-          filteredClubs.map((club: Club) => (
-            <TouchableOpacity
-              key={club.id}
-              style={styles.clubCard}
-              onPress={() => navigation.navigate('ClubDetail' as never, { club } as never)}
-            >
-              <Image source={{ uri: club.image }} style={styles.clubImage} />
-              <View style={styles.clubInfo}>
-                <Text style={styles.clubName}>{club.name}</Text>
-                <Text style={styles.clubCategory}>{club.category}</Text>
-                <Text style={styles.clubDescription}>{club.description}</Text>
-                <View style={[styles.joinButton, club.joined && styles.joinedButton]}>
-                  <Text style={styles.joinButtonText}>
-                    {club.joined ? 'Joined' : 'Join'}
-                  </Text>
-                </View>
+      <FlatList
+        data={filteredClubs}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.clubCard}
+            onPress={() => navigation.navigate('ClubDetail' as never, { club: item } as never)}
+          >
+            <Image source={{ uri: item.image }} style={styles.clubImage} />
+            <View style={styles.clubInfo}>
+              {item.category && (
+                <Text style={styles.clubCategory}>{item.category.toUpperCase()}</Text>
+              )}
+              <Text style={styles.clubName}>{item.name}</Text>
+              <View style={styles.memberInfo}>
+                <Text style={styles.memberText}>12 Members</Text>
               </View>
-            </TouchableOpacity>
-          ))
+            </View>
+          </TouchableOpacity>
         )}
-      </ScrollView>
+        ListEmptyComponent={
+          <Text style={styles.emptyState}>No clubs found in this category.</Text>
+        }
+        contentContainerStyle={styles.clubList}
+      />
     </SafeAreaView>
   );
 }
@@ -109,7 +110,6 @@ export default function ClubsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
     paddingHorizontal: SIZES.padding,
   },
   header: {
@@ -161,59 +161,45 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   clubList: {
-    paddingBottom: 100,
+    paddingBottom: 120,
   },
   emptyState: {
     fontSize: SIZES.font,
     color: COLORS.textMuted,
     textAlign: 'center',
-    marginTop: 50,
+    marginTop: 80,
   },
   clubCard: {
-    flexDirection: 'row',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
+    backgroundColor: COLORS.card,
+    borderRadius: SIZES.radius,
     marginBottom: SIZES.base * 2,
-    padding: SIZES.base * 1.5,
-    alignItems: 'center',
+    shadowColor: COLORS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   clubImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 8,
-    marginRight: 14,
+    width: '100%',
+    height: 120,
+    borderTopLeftRadius: SIZES.radius,
+    borderTopRightRadius: SIZES.radius,
   },
   clubInfo: {
-    flex: 1,
+    padding: SIZES.base * 1.5,
+  },
+  clubCategory: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: 'bold',
+    marginBottom: 4,
   },
   clubName: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.textPrimary,
+    marginBottom: 6,
   },
-  clubCategory: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginBottom: 4,
-  },
-  clubDescription: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  joinButton: {
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  joinedButton: {
-    backgroundColor: COLORS.textMuted,
-  },
-  joinButtonText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+  memberInfo: { flexDirection: 'row', alignItems: 'center' },
+  memberText: { fontSize: 13, color: COLORS.textSubtle },
 });

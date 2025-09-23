@@ -32,7 +32,7 @@ export default function DrawerNavigator() {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
       <Drawer.Screen
-        name="Main"
+        name="Home"
         component={TabNavigator}
         options={{
           drawerIcon: ({ color, size }) => <Ionicons name="home-outline" size={size} color={color} />,
