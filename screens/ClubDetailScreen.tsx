@@ -125,18 +125,28 @@ export default function ClubDetailScreen() {
               ))}
             </>
           )}
+
+          {/* Leave Club Button - Renders inside the scroll view when joined */}
+          {isJoined && (
+            <TouchableOpacity
+              style={[styles.joinButton, styles.joinedButton, { marginTop: SIZES.padding * 2 }]}
+              onPress={handleJoinClub}
+            >
+              <Text style={[styles.joinButtonText, styles.joinedButtonText]}>Leave Club</Text>
+            </TouchableOpacity>
+          )}
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      <View style={[styles.joinWrapper, { bottom: insets.bottom + 10 }]}>
-        <TouchableOpacity
-          style={[styles.joinButton, isJoined && styles.joinedButton]}
-          onPress={handleJoinClub}
-        >
-          <Text style={styles.joinButtonText}>{isJoined ? 'Leave Club' : 'Join Club'}</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Floating Join Button - Renders only when not joined */}
+      {!isJoined && (
+        <View style={[styles.joinWrapper, { bottom: insets.bottom + 10 }]}>
+          <TouchableOpacity style={styles.joinButton} onPress={handleJoinClub}>
+            <Text style={styles.joinButtonText}>Join Club</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -277,11 +287,18 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   joinedButton: {
-    backgroundColor: COLORS.card,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.textMuted,
+    shadowColor: 'transparent', // Remove shadow for outline button
+    elevation: 0,
   },
   joinButtonText: {
     color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  joinedButtonText: {
+    color: COLORS.textMuted,
   },
 });
