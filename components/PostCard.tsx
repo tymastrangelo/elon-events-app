@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Animated } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { Post, clubs } from '../data/mockData';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +16,9 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const [isLiked, setIsLiked] = useState(post.isLiked);
   const [likeCount, setLikeCount] = useState(post.likes);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showHeart, setShowHeart] = useState(false);
+  const heartAnimation = useRef(new Animated.Value(0)).current;
+  let lastTap: number | null = null;
 
   const handleClubPress = () => {
     const fullClub = clubs.find((c) => c.id === post.club.id);
@@ -23,8 +26,39 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   };
 
   const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(isLiked ? likeCount - 1 : likeCount + 1);
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    setLikeCount(newLikedState ? likeCount + 1 : likeCount - 1);
+    return newLikedState;
+  };
+
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+    if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
+      if (!isLiked) {
+        handleLike();
+      }
+      setShowHeart(true);
+    } else {
+      lastTap = now;
+    }
+  };
+
+  useEffect(() => {
+    if (showHeart) {
+      Animated.sequence([
+        Animated.spring(heartAnimation, { toValue: 1, useNativeDriver: true }),
+        Animated.timing(heartAnimation, { toValue: 0, duration: 200, delay: 500, useNativeDriver: true }),
+      ]).start(() => {
+        setShowHeart(false);
+      });
+    }
+  }, [showHeart]);
+
+  const animatedHeartStyle = {
+    transform: [{ scale: heartAnimation }],
+    opacity: heartAnimation,
   };
 
   const toggleTextExpansion = () => {
@@ -46,8 +80,17 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         </View>
       </TouchableOpacity>
 
-      {/* Post Image */}
-      <Image source={{ uri: post.image }} style={styles.postImage} />
+      {/* Post Image with Double-Tap Handler */}
+      <TouchableWithoutFeedback onPress={handleDoubleTap}>
+        <View>
+          <Image source={{ uri: post.image }} style={styles.postImage} />
+          {showHeart && (
+            <Animated.View style={[styles.heartOverlay, animatedHeartStyle]}>
+              <Ionicons name="heart" size={100} color={COLORS.white} />
+            </Animated.View>
+          )}
+        </View>
+      </TouchableWithoutFeedback>
 
       {/* Action Buttons */}
       <View style={styles.actions}>
@@ -122,6 +165,15 @@ const styles = StyleSheet.create({
   postImage: {
     width: '100%',
     aspectRatio: 1 / 1, // Square image
+  },
+  heartOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   actions: {
     flexDirection: 'row',
