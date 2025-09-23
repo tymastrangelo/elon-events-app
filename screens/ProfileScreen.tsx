@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,26 @@ import {
 import MainLayout from './MainLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS, SIZES } from '../theme';
 import { clubs } from '../data/mockData';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const [joinedClubsCount, setJoinedClubsCount] = useState(0);
 
-  const joinedClubs = clubs.filter((club) => club.joined);
   const name = 'Tyler Mastrangelo';
   const email = 'tmastrangelo@elon.edu';
   const handle = '@' + email.split('@')[0]; // ➜ @tmastrangelo
+
+  useFocusEffect(
+    useCallback(() => {
+      // This code will run every time the screen comes into focus
+      const count = clubs.filter((club) => club.joined).length;
+      setJoinedClubsCount(count);
+    }, [])
+  );
 
   return (
     <MainLayout>
@@ -56,7 +64,7 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>RSVP’d</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{joinedClubs.length}</Text>
+            <Text style={styles.statNumber}>{joinedClubsCount}</Text>
             <Text style={styles.statLabel}>Clubs</Text>
           </View>
         </View>
