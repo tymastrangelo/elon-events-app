@@ -9,15 +9,16 @@ import {
   Linking,
 } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
 import { RootStackParamList } from '../navigation/types';
-import { Event, myEvents, exploreEvents, recommendedEvents } from '../data/mockData';
+import { Event, myEvents, exploreEvents, recommendedEvents, clubs } from '../data/mockData';
 import { COLORS, SIZES } from '../theme';
 
 export default function EventDetailScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'EventDetail'>>();
   const { event } = route.params;
   const [isBookmarked, setIsBookmarked] = useState(event.saved || false);
@@ -43,6 +44,13 @@ export default function EventDetailScreen() {
     const encodedLocation = encodeURIComponent(event.location);
     const url = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
     Linking.openURL(url);
+  };
+
+  const handleHostPress = () => {
+    const hostClub = clubs.find((club) => club.name === event.host);
+    if (hostClub) {
+      navigation.navigate('ClubDetail', { club: hostClub });
+    }
   };
 
   return (
@@ -99,7 +107,9 @@ export default function EventDetailScreen() {
 
           {/* Hosted by */}
           {event.host && (
-            <Text style={styles.hostText}>Hosted by {event.host}</Text>
+            <TouchableOpacity onPress={handleHostPress}>
+              <Text style={styles.hostText}>Hosted by {event.host}</Text>
+            </TouchableOpacity>
           )}
 
           {/* Date & Time Info */}
@@ -274,7 +284,7 @@ const styles = StyleSheet.create({
   hostText: {
     fontSize: 16,
     fontWeight: '500',
-    color: COLORS.textSecondary,
+    color: COLORS.primary,
     marginBottom: 24,
   },
   infoRow: {
