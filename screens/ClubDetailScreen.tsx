@@ -10,16 +10,22 @@ import {
 } from 'react-native';
 import { RouteProp, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons, Feather } from '@expo/vector-icons';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Linking } from 'react-native';
-import { Club } from '../data/mockData';
+import { Linking, Platform } from 'react-native';
+import { Club, exploreEvents, myEvents, recommendedEvents, Event } from '../data/mockData';
+import { RootStackParamList } from '../navigation/types';
 import { COLORS, SIZES } from '../theme';
 
 export default function ClubDetailScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<{ params: { club: Club } }, 'params'>>();
   const { club } = route.params;
   const insets = useSafeAreaInsets();
+
+  // Combine all event sources and filter for events hosted by this club
+  const allEvents = [...exploreEvents, ...myEvents, ...recommendedEvents];
+  const hostedEvents = allEvents.filter((event) => event.host === club.name);
 
   useFocusEffect(
     useCallback(() => {
@@ -83,6 +89,30 @@ export default function ClubDetailScreen() {
           {/* About */}
           <Text style={styles.sectionTitle}>About the Club</Text>
           <Text style={styles.description}>{club.description}</Text>
+
+          {/* Hosted Events */}
+          {hostedEvents.length > 0 && (
+            <>
+              <Text style={[styles.sectionTitle, { marginTop: SIZES.padding * 1.5 }]}>Hosted Events</Text>
+              {hostedEvents.map((event) => (
+                <TouchableOpacity
+                  key={event.id}
+                  style={styles.eventCard}
+                  onPress={() => navigation.navigate('EventDetail', { event })}
+                >
+                  <Image source={{ uri: event.image }} style={styles.eventThumbnail} />
+                  <View style={styles.eventCardContent}>
+                    <Text style={styles.eventDate}>{event.date}</Text>
+                    <Text style={styles.eventTitle}>{event.title}</Text>
+                    <View style={styles.eventMetaRow}>
+                      <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
+                      <Text style={styles.eventLocation}>{event.location}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
         </View>
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -171,6 +201,47 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: COLORS.textSecondary,
     lineHeight: 22,
+  },
+  // Event Card Styles (copied from EventsScreen for consistency)
+  eventCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    marginTop: 16,
+    padding: 12,
+    alignItems: 'center',
+  },
+  eventThumbnail: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    marginRight: 14,
+  },
+  eventCardContent: {
+    flex: 1,
+  },
+  eventDate: {
+    fontSize: 13,
+    color: COLORS.primary,
+    marginBottom: 4,
+  },
+  eventTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+    marginBottom: 4,
+  },
+  eventMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  eventLocation: {
+    fontSize: 13,
+    color: COLORS.textSubtle,
+    marginLeft: 4,
+    // Allow location text to wrap if it's too long
+    flexShrink: 1,
+    ...Platform.select({ android: { flex: 1 } }),
   },
   joinWrapper: {
     position: 'absolute',

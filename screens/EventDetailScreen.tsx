@@ -81,6 +81,11 @@ export default function EventDetailScreen() {
           {/* Title */}
           <Text style={styles.title}>{event.title}</Text>
 
+          {/* Hosted by */}
+          {event.host && (
+            <Text style={styles.hostText}>Hosted by {event.host}</Text>
+          )}
+
           {/* Date & Time Info */}
           {event.date && (
             <View style={styles.infoRow}>
@@ -248,6 +253,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.textPrimary,
     lineHeight: 40,
+    marginBottom: 8,
+  },
+  hostText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
     marginBottom: 24,
   },
   infoRow: {

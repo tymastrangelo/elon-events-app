@@ -133,6 +133,7 @@ export const myEvents: Event[] = [
     attendees: '12',
     image: 'https://plus.unsplash.com/premium_photo-1685231505282-fd4188e44841?q=80&w=2671&auto=format&fit=crop',
     date: 'Friday, Sept 20 • 5:00 PM',
+    host: 'Club Soccer',
     isLive: true,
   },
   {
@@ -142,6 +143,7 @@ export const myEvents: Event[] = [
     attendees: '9',
     image: 'https://images.unsplash.com/flagged/photo-1556655678-9d4812e3fbe9?q=80&w=2671&auto=format&fit=crop',
     date: 'Saturday, Sept 21 • 10:00 AM',
+    host: 'Elon Coding Club',
   },
   {
     id: 10,
@@ -150,6 +152,7 @@ export const myEvents: Event[] = [
     attendees: '150',
     image: 'https://images.unsplash.com/photo-1507924538820-ede94a04019d?q=80&w=2670&auto=format&fit=crop',
     date: 'Friday, Nov 8 • 7:30 PM',
+    host: 'Music Ensemble',
   },
 ];
 

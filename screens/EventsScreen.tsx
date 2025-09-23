@@ -66,6 +66,7 @@ export default function EventsScreen() {
       <View style={styles.cardContent}>
         <Text style={styles.date}>{item.date}</Text>
         <Text style={styles.title}>{item.title}</Text>
+        {item.host && <Text style={styles.host}>Hosted by {item.host}</Text>}
         <View style={styles.metaRow}>
           <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
           <Text style={styles.location}>{item.location}</Text>
@@ -228,6 +229,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textPrimary,
     marginBottom: 4,
+  },
+  host: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    marginBottom: 6,
   },
   metaRow: {
     flexDirection: 'row',
