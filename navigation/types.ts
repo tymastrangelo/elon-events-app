@@ -18,6 +18,7 @@ export type DrawerParamList = {
 export type RootStackParamList = {
   MainDrawer: NavigatorScreenParams<DrawerParamList>;
   EventDetail: { event: Event };
+  ClubDetail: { club: Club };
 };
 
 export type RootStackNavigationProp = StackNavigationProp<RootStackParamList>;
@@ -36,4 +37,11 @@ export type EventsStackParamList = {
 export type ExploreStackParamList = {
   ExploreHome: undefined;
   ClubDetail: { club: Club };
+};
+
+/**
+ * The stack navigator for the new "Feed" tab.
+ */
+export type FeedStackParamList = {
+  FeedList: undefined;
 };

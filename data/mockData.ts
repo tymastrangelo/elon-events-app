@@ -1,5 +1,26 @@
 // data/mockData.ts
 
+export interface Post {
+  id: string;
+  type: 'event' | 'post';
+  club: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+  image: string;
+  caption: string;
+  likes: number;
+  comments: number;
+  timestamp: string; // ISO date string
+  eventDetails?: {
+    title: string;
+    date: string; // ISO date string
+    location: string;
+  };
+  isLiked: boolean;
+}
+
 // Event Type
 export type Event = {
   id: number;
@@ -30,6 +51,79 @@ export type Club = {
   meetingTimes?: string;
   contactEmail?: string;
 };
+
+export const mockPosts: Post[] = [
+  {
+    id: '1',
+    type: 'event',
+    club: {
+      id: '1', // Matches 'Elon Coding Club' id
+      name: 'Elon Coding Club',
+      avatar: 'https://i.pravatar.cc/150?u=club1',
+    },
+    image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=2070',
+    caption: 'Join us for our first hackathon of the semester! All skill levels welcome. Free food and prizes!',
+    likes: 124,
+    comments: 12,
+    timestamp: '2024-10-26T19:00:00.000Z',
+    eventDetails: {
+      title: 'Fall Hackathon 2024',
+      date: '2024-11-08T09:00:00.000Z',
+      location: 'Innovation Hall, Room 204',
+    },
+    isLiked: false,
+  },
+  {
+    id: '2',
+    type: 'post',
+    club: {
+      id: '2', // Matches 'Black Student Union' id
+      name: 'Black Student Union',
+      avatar: 'https://i.pravatar.cc/150?u=club2',
+    },
+    image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd51622?q=80&w=2070',
+    caption: 'Thanks to everyone who came out to the concert last night! It was a huge success. What artist should we bring next?',
+    likes: 302,
+    comments: 45,
+    timestamp: '2024-10-25T22:15:00.000Z',
+    isLiked: true,
+  },
+  {
+    id: '3',
+    type: 'event',
+    club: {
+      id: '5', // Matches 'Elon Volunteers!' id
+      name: 'Elon Volunteers!',
+      avatar: 'https://i.pravatar.cc/150?u=club3',
+    },
+    image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070',
+    caption: 'Help us make a difference this weekend at the local animal shelter. Transportation provided. Sign up link in bio!',
+    likes: 88,
+    comments: 5,
+    timestamp: '2024-10-25T14:30:00.000Z',
+    eventDetails: {
+      title: 'Animal Shelter Volunteering',
+      date: '2024-11-09T10:00:00.000Z',
+      location: 'Burlington Animal Services',
+    },
+    isLiked: false,
+  },
+  {
+    id: '4',
+    type: 'post',
+    club: {
+      id: '1', // Matches 'Elon Coding Club' id
+      name: 'Elon Coding Club',
+      avatar: 'https://i.pravatar.cc/150?u=club1',
+    },
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070',
+    caption: 'Quick recap of our Python workshop. We covered data structures and algorithms. Slides are now available on our PhoenixCONNECT page.',
+    likes: 75,
+    comments: 8,
+    timestamp: '2024-10-24T18:00:00.000Z',
+    isLiked: true,
+  },
+];
 
 export const myEvents: Event[] = [
   {
