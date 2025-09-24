@@ -1,5 +1,5 @@
 // screens/HomeScreen.tsx
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
@@ -34,10 +35,20 @@ export default function HomeScreen() {
   >();
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleApplyFilters = (filters: any) => {
     console.log('Filters applied:', filters);
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // In a real app, you would re-fetch your data here.
+    // We'll simulate it with a timeout.
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
 
   // Memoized filtering to prevent re-calculation on every render
   const filteredLiveEvents = useMemo(() => {
@@ -104,7 +115,12 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* LIVE EVENTS */}
         {filteredLiveEvents.length > 0 && (
           <>
