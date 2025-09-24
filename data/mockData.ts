@@ -133,7 +133,7 @@ export const myEvents: Event[] = [
     title: 'Club Soccer Practice',
     location: 'South Campus Fields',
     attendees: '12',
-    image: 'https://images.unsplash.com/photo-1552667466-07770ae111d8?q=80&w=2670&auto=format&fit=crop',
+    image: 'https://www.blazepod.com/cdn/shop/articles/BP_Article_Football_Endurance_Training_960x585_e408c1ff-e82d-4765-a545-0b6c976b80b8_1024x.jpg?v=1745922200',
     date: '2024-09-20T17:00:00',
     host: 'Club Soccer',
     isLive: true,
