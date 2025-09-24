@@ -53,6 +53,18 @@ export default function EventDetailScreen() {
     }
   };
 
+  // This function formats the ISO date string into a readable format for the UI.
+  const formatEventDate = (dateString: string): { day: string, time: string } => {
+    const date = new Date(dateString);
+    const day = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+    const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    return { day, time };
+  };
+
   return (
     <View style={styles.pageContainer}>
         {/* Back Button */}
@@ -119,8 +131,8 @@ export default function EventDetailScreen() {
                 <Feather name="calendar" size={24} color={COLORS.primary} />
               </View>
               <View>
-                <Text style={styles.infoTitle}>{event.date}</Text>
-                <Text style={styles.infoSubtitle}>Tuesday, 4:00PM - 9:00PM</Text>
+                <Text style={styles.infoTitle}>{formatEventDate(event.date).day}</Text>
+                <Text style={styles.infoSubtitle}>{formatEventDate(event.date).time}</Text>
               </View>
             </View>
           )}
@@ -133,7 +145,7 @@ export default function EventDetailScreen() {
             <TouchableOpacity onPress={handleMapOpen}>
               <View>
                 <Text style={styles.infoTitle}>{event.location}</Text>
-                <Text style={styles.infoSubtitle}>36 Guild Street London, UK</Text>
+                <Text style={styles.infoSubtitle}>{event.room || 'View on map'}</Text>
               </View>
             </TouchableOpacity>
           </View>
