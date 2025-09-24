@@ -7,12 +7,15 @@ import {
   ScrollView,
   TouchableOpacity,
   Linking,
+  Platform,
+  Alert,
 } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
+import * as Calendar from 'expo-calendar';
 import { RootStackParamList } from '../navigation/types';
 import { Event, myEvents, exploreEvents, recommendedEvents, clubs } from '../data/mockData';
 import { COLORS, SIZES } from '../theme';
@@ -51,6 +54,76 @@ export default function EventDetailScreen() {
     if (hostClub) {
       navigation.navigate('ClubDetail', { club: hostClub });
     }
+  };
+
+  const handleAddToCalendar = async () => {
+    const { status } = await Calendar.requestCalendarPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Please grant calendar permissions in your settings to add this event.');
+      return;
+    }
+
+    const createCalendarEvent = async () => {
+      const now = new Date();
+      let startDate = new Date(event.date);
+
+      // If the hardcoded event date is in the past, intelligently adjust it for the future.
+      if (startDate < now) {
+        // Set the event to the same month/day but for the current year.
+        startDate.setFullYear(now.getFullYear());
+        // If that date has *still* passed this year, set it for next year.
+        if (startDate < now) {
+          startDate.setFullYear(now.getFullYear() + 1);
+        }
+      }
+
+      // Assume a default duration of 2 hours if no end time is specified
+      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
+      const eventDetails = {
+        title: event.title,
+        startDate,
+        endDate,
+        location: event.location,
+        notes: event.description || `Event hosted by ${event.host}.`,
+      };
+
+      let calendarId: string | null = null;
+
+      try {
+        if (Platform.OS === 'ios') {
+          const defaultCalendar = await Calendar.getDefaultCalendarAsync();
+          calendarId = defaultCalendar.id;
+        } else {
+          const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+          const writableCalendars = calendars.filter(cal => cal.allowsModifications);
+          if (writableCalendars.length > 0) {
+            calendarId = writableCalendars[0].id;
+          }
+        }
+
+        if (!calendarId) {
+          Alert.alert('Error', 'No writable calendar found on this device.');
+          return;
+        }
+
+        await Calendar.createEventAsync(calendarId, eventDetails);
+        Alert.alert('Success', 'Event added to your calendar!');
+      } catch (error) {
+        console.error(error);
+        Alert.alert('Error', 'Could not add event to calendar.');
+      }
+    };
+
+    // Prompt the user before adding the event
+    Alert.alert(
+      'Add to Calendar',
+      `Add "${event.title}" to your device's calendar?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Add Event', onPress: createCalendarEvent },
+      ]
+    );
   };
 
   // This function formats the ISO date string into a readable format for the UI.
@@ -126,15 +199,17 @@ export default function EventDetailScreen() {
 
           {/* Date & Time Info */}
           {event.date && (
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Feather name="calendar" size={24} color={COLORS.primary} />
+            <TouchableOpacity onPress={handleAddToCalendar}>
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconContainer}>
+                  <Feather name="calendar" size={24} color={COLORS.primary} />
+                </View>
+                <View>
+                  <Text style={styles.infoTitle}>{formatEventDate(event.date).day}</Text>
+                  <Text style={styles.infoSubtitle}>{formatEventDate(event.date).time}</Text>
+                </View>
               </View>
-              <View>
-                <Text style={styles.infoTitle}>{formatEventDate(event.date).day}</Text>
-                <Text style={styles.infoSubtitle}>{formatEventDate(event.date).time}</Text>
-              </View>
-            </View>
+            </TouchableOpacity>
           )}
 
           {/* Location Info */}
