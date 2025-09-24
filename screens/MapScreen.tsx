@@ -64,7 +64,7 @@ export default function MapScreen() {
             coordinate={event.coordinates!}
             title={event.title}
             description={event.location}
-            onPress={() => navigation.navigate('EventDetail', { event })}
+            onCalloutPress={() => navigation.navigate('EventDetail', { event })}
           />
         ))}
       </MapView>
