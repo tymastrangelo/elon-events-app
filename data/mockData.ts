@@ -60,7 +60,7 @@ export const mockPosts: Post[] = [
     club: {
       id: '1', // Matches 'Elon Coding Club' id
       name: 'Elon Coding Club',
-      avatar: 'https://i.pravatar.cc/150?u=club1',
+      avatar: 'https://rock-the-prototype.com/wp-content/uploads/2023/01/Coden-im-Team-Warum-gemeinsam-programmieren-so-effektiv-ist_hochaufloesend_RTP.jpg',
     },
     image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=2070',
     caption: 'Join us for our first hackathon of the semester! All skill levels welcome. Free food and prizes!',
@@ -79,10 +79,10 @@ export const mockPosts: Post[] = [
     type: 'post',
     club: {
       id: '11', // Matches 'Student Union Board' id
-      name: 'Black Student Union',
-      avatar: 'https://i.pravatar.cc/150?u=club2',
+      name: 'Student Union Board',
+      avatar: 'https://se-images.campuslabs.com/clink/images/8778e489-0da4-4cee-97e3-5f366ad7f6f626db8020-342f-4387-9afd-06de95eda195.jpg?preset=med-sq',
     },
-    image: 'https://images.unsplash.com/photo-1511795409834-ef04bbd51622?q=80&w=2070',
+    image: 'https://thumbs.6sqft.com/wp-content/uploads/2021/07/13123945/The-Rooftop-at-Pier-17-concert.jpg?w=1560&format=webp',
     caption: 'Thanks to everyone who came out to the concert last night! It was a huge success. What artist should we bring next?',
     likes: 302,
     comments: 45,
@@ -95,7 +95,7 @@ export const mockPosts: Post[] = [
     club: {
       id: '5', // Matches 'Elon Volunteers!' id
       name: 'Elon Volunteers!',
-      avatar: 'https://i.pravatar.cc/150?u=club3',
+      avatar: 'https://snworksceo.imgix.net/enn/82d26e1f-a76f-42b1-82ab-ace6052c5b8b.sized-1000x1000.jpg?w=1000',
     },
     image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=2070',
     caption: 'Help us make a difference this weekend at the local animal shelter. Transportation provided. Sign up link in bio!',
@@ -115,7 +115,7 @@ export const mockPosts: Post[] = [
     club: {
       id: '1', // Matches 'Elon Coding Club' id
       name: 'Elon Coding Club',
-      avatar: 'https://i.pravatar.cc/150?u=club1',
+      avatar: 'https://rock-the-prototype.com/wp-content/uploads/2023/01/Coden-im-Team-Warum-gemeinsam-programmieren-so-effektiv-ist_hochaufloesend_RTP.jpg',
     },
     image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070',
     caption: 'Quick recap of our Python workshop. We covered data structures and algorithms. Slides are now available on our PhoenixCONNECT page.',
