@@ -35,7 +35,28 @@ export default function EventDetailScreen() {
   };
 
   const handleBookmark = () => {
-    toggleSavedEvent(String(event.id));
+    if (isBookmarked) {
+      // If the event is already saved, show a confirmation alert
+      Alert.alert(
+        'Unsave Event', // Title of the alert
+        'Are you sure you want to remove this event from your saved list?', // Message
+        [
+          // Array of buttons
+          {
+            text: 'Cancel',
+            style: 'cancel', // This makes it a "cancel" action (e.g., on iOS, it's bold)
+          },
+          {
+            text: 'Unsave',
+            onPress: () => toggleSavedEvent(String(event.id)), // The action to perform
+            style: 'destructive', // This colors the text red on iOS to indicate a destructive action
+          },
+        ]
+      );
+    } else {
+      // If the event is not saved, save it immediately without a prompt
+      toggleSavedEvent(String(event.id));
+    }
   };
 
 
