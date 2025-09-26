@@ -18,6 +18,14 @@ import { RootStackParamList } from '../navigation/types';
 import { COLORS, SIZES } from '../theme';
 import { useUser } from '../context/UserContext';
 
+const formatEventDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }) + ', ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+};
+
 export default function ClubDetailScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<{ params: { club: Club } }, 'params'>>();
@@ -109,7 +117,7 @@ export default function ClubDetailScreen() {
                 >
                   <Image source={{ uri: event.image }} style={styles.eventThumbnail} />
                   <View style={styles.eventCardContent}>
-                    <Text style={styles.eventDate}>{event.date}</Text>
+                    <Text style={styles.eventDate}>{formatEventDate(event.date)}</Text>
                     <Text style={styles.eventTitle}>{event.title}</Text>
                     <View style={styles.eventMetaRow}>
                       <Feather name="map-pin" size={14} color={COLORS.textSubtle} />

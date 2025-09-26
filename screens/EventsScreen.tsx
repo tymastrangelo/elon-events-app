@@ -24,6 +24,14 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
+const formatEventDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }) + ', ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+};
+
 export default function EventsScreen() {
   // Combine types for the local stack and the root stack for full type safety
   const navigation = useNavigation<RootStackNavigationProp>();
@@ -75,7 +83,7 @@ export default function EventsScreen() {
     >
       <Image source={{ uri: item.image }} style={styles.thumbnail} />
       <View style={styles.cardContent}>
-        <Text style={styles.date}>{item.date}</Text>
+        <Text style={styles.date}>{formatEventDate(item.date)}</Text>
         <Text style={styles.title}>{item.title}</Text>
         {item.host && <Text style={styles.host}>Hosted by {item.host}</Text>}
         <View style={styles.metaRow}>

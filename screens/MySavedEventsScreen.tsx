@@ -16,11 +16,19 @@ import { myEvents, exploreEvents, recommendedEvents, Event } from '../data/mockD
 import { RootStackParamList } from '../navigation/types';
 import { useUser } from '../context/UserContext';
 
+const formatEventDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  }) + ', ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+};
+
 export default function MySavedEventsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { savedEvents: savedEventsIds } = useUser();
+  const { savedEvents } = useUser();
   const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
-  const savedEvents = allEvents.filter((event) => savedEventsIds.includes(String(event.id)));
+  const savedEventsList = allEvents.filter((event) => savedEvents.includes(String(event.id)));
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -35,7 +43,7 @@ export default function MySavedEventsScreen() {
 
       {/* Saved Events List */}
       <FlatList
-        data={savedEvents}
+        data={savedEventsList}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -44,7 +52,7 @@ export default function MySavedEventsScreen() {
           >
             <Image source={{ uri: item.image }} style={styles.thumbnail} />
             <View style={styles.cardContent}>
-              <Text style={styles.date}>{item.date}</Text>
+              <Text style={styles.date}>{formatEventDate(item.date)}</Text>
               <Text style={styles.title}>{item.title}</Text>
               <View style={styles.metaRow}>
                 <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
