@@ -3,7 +3,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
 import ExploreStackNavigator from './ExploreStackNavigator';
-import EventsStackNavigator from './EventsStackNavigator';
 import FeedStackNavigator from './FeedStackNavigator';
 import MapScreen from '../screens/MapScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -30,8 +29,6 @@ const TabNavigator = () => {
             iconName = focused ? 'compass' : 'compass-outline';
           } else if (route.name === 'Feed') {
             iconName = focused ? 'newspaper' : 'newspaper-outline';
-          } else if (route.name === 'Events') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
           } else if (route.name === 'Map') {
             iconName = focused ? 'map' : 'map-outline';
           } else if (route.name === 'Profile') {
@@ -44,7 +41,6 @@ const TabNavigator = () => {
     >
       <Tab.Screen name="Explore" component={ExploreStackNavigator} />
       <Tab.Screen name="Feed" component={FeedStackNavigator} />
-      <Tab.Screen name="Events" component={EventsStackNavigator} />
       <Tab.Screen name="Map" component={MapScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>

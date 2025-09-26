@@ -21,6 +21,7 @@ export type RootStackParamList = {
   ClubDetail: { club: Club };
   MyClubs: undefined;
   MySavedEvents: undefined;
+  EventList: { title: string; filter: 'live' | 'upcoming' | 'recommended' };
   MyRsvpdEvents: undefined;
   Notifications: undefined;
   NotificationSettings: undefined;

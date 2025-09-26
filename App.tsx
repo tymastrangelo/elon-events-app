@@ -12,6 +12,7 @@ import ClubDetailScreen from './screens/ClubDetailScreen';
 import MyClubsScreen from './screens/MyClubsScreen';
 import MySavedEventsScreen from './screens/MySavedEventsScreen';
 import MyRsvpdEventsScreen from './screens/MyRsvpdEventsScreen';
+import EventListScreen from './screens/EventListScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import NotificationSettingsScreen from './screens/NotificationSettingsScreen';
 import { registerForPushNotificationsAsync } from './services/pushNotifications';
@@ -80,6 +81,11 @@ export default function App() {
             <RootStack.Screen
               name="MyRsvpdEvents"
               component={MyRsvpdEventsScreen}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="EventList"
+              component={EventListScreen}
               options={{ headerShown: false }}
             />
             <RootStack.Screen

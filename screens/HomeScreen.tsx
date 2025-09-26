@@ -129,6 +129,13 @@ export default function HomeScreen() {
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Live Events</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('EventList', { title: 'Live Events', filter: 'live' })
+                }
+              >
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {filteredLiveEvents.map((event) => (
@@ -162,6 +169,13 @@ export default function HomeScreen() {
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Upcoming Events</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('EventList', { title: 'Upcoming Events', filter: 'upcoming' })
+                }
+              >
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {filteredUpcomingEvents.map((event) => (
@@ -190,6 +204,13 @@ export default function HomeScreen() {
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recommended</Text>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('EventList', { title: 'Recommended', filter: 'recommended' })
+                }
+              >
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {filteredRecommendedEvents.map((event) => (
@@ -218,6 +239,9 @@ export default function HomeScreen() {
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Your Clubs</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('MyClubs')}>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
             </View>
             {filteredClubs.map((club) => (
               <TouchableOpacity
@@ -293,6 +317,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: { fontSize: 18, fontWeight: '600', color: COLORS.textPrimary },
+  seeAllText: {
+    color: COLORS.primary,
+    fontWeight: '500',
+    fontSize: 14,
+  },
   eventCard: {
     width: 280,
     height: 180,
