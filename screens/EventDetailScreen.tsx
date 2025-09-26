@@ -31,7 +31,30 @@ export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
 
   const handleRsvp = () => {
-    toggleRsvp(String(event.id));
+    // FUTURE: This could be enhanced in two ways:
+    // 1. Link to PhoenixConnect: Open the event's PhoenixConnect link. After returning to the app,
+    //    show a prompt like "Did you RSVP?" to manually update the state.
+    // 2. Backend Integration: Implement a proper backend service to handle RSVPs. The button would
+    //    trigger an API call, and the app state would update based on the successful response.
+    if (isRsvpd) {
+      Alert.alert(
+        'Cancel RSVP',
+        'Are you sure you want to cancel your RSVP for this event?',
+        [
+          {
+            text: 'Keep RSVP',
+            style: 'cancel',
+          },
+          {
+            text: 'Yes, Cancel',
+            onPress: () => toggleRsvp(String(event.id)),
+            style: 'destructive',
+          },
+        ]
+      );
+    } else {
+      toggleRsvp(String(event.id));
+    }
   };
 
   const handleBookmark = () => {
