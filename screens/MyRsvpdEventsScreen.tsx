@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -26,9 +26,26 @@ const formatEventDate = (dateString: string): string => {
 
 export default function MyRsvpdEventsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const [activeTab, setActiveTab] = useState<'Upcoming' | 'Past'>('Upcoming');
   const { rsvpdEvents } = useUser();
   const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
-  const rsvpdEventsList = allEvents.filter((event) => rsvpdEvents.includes(String(event.id)));
+
+  const { upcomingEvents, pastEvents } = useMemo(() => {
+    const now = new Date();
+    const rsvpdEventsList = allEvents.filter((event) => rsvpdEvents.includes(String(event.id)));
+
+    const upcoming = rsvpdEventsList
+      .filter((event) => new Date(event.date) >= now)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const past = rsvpdEventsList
+      .filter((event) => new Date(event.date) < now)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return { upcomingEvents: upcoming, pastEvents: past };
+  }, [rsvpdEvents]);
+
+  const displayedEvents = activeTab === 'Upcoming' ? upcomingEvents : pastEvents;
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -41,9 +58,24 @@ export default function MyRsvpdEventsScreen() {
         <View style={{ width: 24 }} />
       </View>
 
+      {/* Toggle Bar */}
+      <View style={styles.toggleWrapper}>
+        {(['Upcoming', 'Past'] as const).map((tab) => (
+          <TouchableOpacity
+            key={tab}
+            style={[styles.toggleButton, activeTab === tab && styles.activeToggleButton]}
+            onPress={() => setActiveTab(tab)}
+          >
+            <Text style={[styles.toggleText, activeTab === tab && styles.activeToggleText]}>
+              {tab.toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* RSVP'd Events List */}
       <FlatList
-        data={rsvpdEventsList}
+        data={displayedEvents}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -62,7 +94,11 @@ export default function MyRsvpdEventsScreen() {
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyState}>You haven't RSVP'd to any events yet.</Text>
+          <Text style={styles.emptyState}>
+            {activeTab === 'Upcoming'
+              ? "You haven't RSVP'd to any upcoming events."
+              : 'No past RSVP\'d events.'}
+          </Text>
         }
         contentContainerStyle={styles.listContent}
       />
@@ -87,6 +123,36 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: COLORS.textPrimary,
+  },
+  toggleWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.input,
+    borderRadius: 50,
+    padding: 4,
+    marginBottom: 16,
+  },
+  toggleButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 50,
+  },
+  activeToggleButton: {
+    backgroundColor: COLORS.white,
+    shadowColor: COLORS.border,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: COLORS.textMuted,
+  },
+  activeToggleText: {
+    color: COLORS.primary,
   },
   listContent: {
     paddingBottom: 120,

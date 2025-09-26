@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS, SIZES } from '../theme';
+import { myEvents, exploreEvents, recommendedEvents } from '../data/mockData';
 import { useUser } from '../context/UserContext';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { savedEvents, joinedClubs, rsvpdEvents } = useUser();
+
+  const { upcomingSavedCount, upcomingRsvpdCount } = useMemo(() => {
+    const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
+    const now = new Date();
+
+    const upcomingSaved = allEvents.filter(
+      (event) => savedEvents.includes(String(event.id)) && new Date(event.date) >= now
+    ).length;
+
+    const upcomingRsvpd = allEvents.filter(
+      (event) => rsvpdEvents.includes(String(event.id)) && new Date(event.date) >= now
+    ).length;
+
+    return { upcomingSavedCount: upcomingSaved, upcomingRsvpdCount: upcomingRsvpd };
+  }, [savedEvents, rsvpdEvents]);
 
   const name = 'Tyler Mastrangelo';
   const email = 'tmastrangelo@elon.edu';
@@ -48,11 +64,11 @@ export default function ProfileScreen() {
         {/* Stats Section */}
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{String(savedEvents.length)}</Text>
+            <Text style={styles.statNumber}>{String(upcomingSavedCount)}</Text>
             <Text style={styles.statLabel}>Saved</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{String(rsvpdEvents.length)}</Text>
+            <Text style={styles.statNumber}>{String(upcomingRsvpdCount)}</Text>
             <Text style={styles.statLabel}>RSVP’d</Text>
           </View>
           <View style={styles.statBox}>
