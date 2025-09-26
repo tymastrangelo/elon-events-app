@@ -21,7 +21,9 @@ export type RootStackParamList = {
   ClubDetail: { club: Club };
   MyClubs: undefined;
   MySavedEvents: undefined;
+  MyRsvpdEvents: undefined;
   Notifications: undefined;
+  NotificationSettings: undefined;
 };
 
 export type RootStackNavigationProp = StackNavigationProp<RootStackParamList>;

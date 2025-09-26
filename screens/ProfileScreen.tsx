@@ -94,7 +94,11 @@ export default function ProfileScreen() {
             label="My Clubs"
             onPress={() => navigation.navigate('MyClubs')}
           />
-          <MenuItem icon="notifications-outline" label="Notification Settings" />
+          <MenuItem
+            icon="notifications-outline"
+            label="Notification Settings"
+            onPress={() => navigation.navigate('NotificationSettings')}
+          />
           <MenuItem icon="help-circle-outline" label="Feedback / Support" />
         </View>
 
