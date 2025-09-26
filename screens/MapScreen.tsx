@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.background,
-    paddingTop: Platform.OS === 'android' ? 35 : 0,
+    paddingTop: Platform.OS === 'android' ? SIZES.padding * 1.5 : 0,
   },
   headerWrapper: {
     paddingHorizontal: SIZES.padding,

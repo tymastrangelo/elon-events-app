@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   },
   activeToggleButton: {
     backgroundColor: COLORS.white,
-    shadowColor: COLORS.border,
+    shadowColor: COLORS.black,
     shadowOpacity: 0.15,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },

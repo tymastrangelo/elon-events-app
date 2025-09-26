@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   joinedButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'transparent', // This is intentional for an outline button
     borderWidth: 1,
     borderColor: COLORS.textMuted,
     shadowColor: 'transparent', // Remove shadow for outline button
