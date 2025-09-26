@@ -19,7 +19,7 @@ const CustomDrawerContent = (props: any) => {
         {/* Profile Header */}
         <View style={[styles.profileHeader, { paddingTop: insets.top + SIZES.base }]}>
           <Image
-            source={{ uri: 'https://elonphoenix.com/images/2025/8/29/Tyler_Mastrangelo_20250821_XC_Media_Day_JK_1863.jpg?width=146' }}
+            source={{ uri: 'https://snworksceo.imgix.net/enn/66efa747-1661-44c4-9478-aa8a5fe881a3.sized-1000x1000.jpeg?w=1000' }}
             style={styles.avatar}
           />
           <Text style={styles.name}>{name}</Text>

@@ -321,7 +321,7 @@ export const clubs: Club[] = [
     name: 'Music Ensemble',
     category: 'Music',
     description: 'Perform, rehearse, and jam with other student musicians.',
-    image: 'https://www.liveabout.com/thmb/KI0A7ByS7qfYjizowBJnP-2mTKI=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Jarusalem-Quartet-String-Quartet-56a1541a5f9b58b7d0be5177.jpg',
+    image: 'https://music.virginia.edu/sites/uva-as-music-d10/files/2024-07/seminar.jpg',
     joined: true,
     meetingTimes: 'Fridays at 5:00 PM',
   },

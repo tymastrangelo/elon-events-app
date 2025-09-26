@@ -34,7 +34,7 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri: 'https://elonphoenix.com/images/2023/8/30/Tyler_Mastrangelo.jpg' }}
+            source={{ uri: 'https://snworksceo.imgix.net/enn/66efa747-1661-44c4-9478-aa8a5fe881a3.sized-1000x1000.jpeg?w=1000' }}
             style={styles.avatar}
           />
           <Text style={styles.name}>{name}</Text>
