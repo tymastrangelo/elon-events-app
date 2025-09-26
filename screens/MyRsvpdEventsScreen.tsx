@@ -8,18 +8,19 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
-import { clubs, Club } from '../data/mockData';
+import { myEvents, exploreEvents, recommendedEvents, Event } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { useUser } from '../context/UserContext';
 
-export default function MyClubsScreen() {
+export default function MyRsvpdEventsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { joinedClubs: joinedClubsIds } = useUser();
-  const joinedClubs = clubs.filter((club) => joinedClubsIds.includes(String(club.id)));
+  const { rsvpdEvents } = useUser();
+  const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
+  const rsvpdEventsList = allEvents.filter((event) => rsvpdEvents.includes(String(event.id)));
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -28,32 +29,34 @@ export default function MyClubsScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
-        <Text style={styles.headerText}>My Clubs</Text>
+        <Text style={styles.headerText}>My RSVP'd Events</Text>
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Club List */}
+      {/* RSVP'd Events List */}
       <FlatList
-        data={joinedClubs}
+        data={rsvpdEventsList}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.clubCard}
-            onPress={() => navigation.navigate('ClubDetail', { club: item })}
+            style={styles.eventCard}
+            onPress={() => navigation.navigate('EventDetail', { event: item })}
           >
-            <Image source={{ uri: item.image }} style={styles.clubImage} />
-            <View style={styles.clubInfo}>
-              <Text style={styles.clubName}>{item.name}</Text>
-              <Text style={styles.clubDescription} numberOfLines={2}>
-                {item.description}
-              </Text>
+            <Image source={{ uri: item.image }} style={styles.thumbnail} />
+            <View style={styles.cardContent}>
+              <Text style={styles.date}>{item.date}</Text>
+              <Text style={styles.title}>{item.title}</Text>
+              <View style={styles.metaRow}>
+                <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
+                <Text style={styles.location}>{item.location}</Text>
+              </View>
             </View>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyState}>You haven't joined any clubs yet.</Text>
+          <Text style={styles.emptyState}>You haven't RSVP'd to any events yet.</Text>
         }
-        contentContainerStyle={styles.clubList}
+        contentContainerStyle={styles.listContent}
       />
     </SafeAreaView>
   );
@@ -77,7 +80,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textPrimary,
   },
-  clubList: {
+  listContent: {
     paddingBottom: 120,
   },
   emptyState: {
@@ -86,36 +89,41 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 80,
   },
-  clubCard: {
+  eventCard: {
     flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: COLORS.card,
-    borderRadius: SIZES.radius,
-    marginBottom: SIZES.base * 2,
-    padding: SIZES.base * 1.5,
-    shadowColor: COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 12,
+    marginBottom: 16,
+    padding: 12,
+    alignItems: 'center',
   },
-  clubImage: {
-    width: 60,
-    height: 60,
-    borderRadius: SIZES.radius,
-    marginRight: SIZES.padding,
+  thumbnail: {
+    width: 72,
+    height: 72,
+    borderRadius: 10,
+    marginRight: 14,
   },
-  clubInfo: {
+  cardContent: {
     flex: 1,
   },
-  clubName: {
-    fontSize: 16,
+  date: {
+    fontSize: 13,
+    color: COLORS.primary,
+    marginBottom: 4,
+  },
+  title: {
+    fontSize: 15,
     fontWeight: '600',
     color: COLORS.textPrimary,
     marginBottom: 4,
   },
-  clubDescription: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  location: {
+    fontSize: 13,
+    color: COLORS.textSubtle,
+    marginLeft: 4,
   },
 });

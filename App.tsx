@@ -11,19 +11,20 @@ import EventDetailScreen from './screens/EventDetailScreen';
 import ClubDetailScreen from './screens/ClubDetailScreen';
 import MyClubsScreen from './screens/MyClubsScreen';
 import MySavedEventsScreen from './screens/MySavedEventsScreen';
+import MyRsvpdEventsScreen from './screens/MyRsvpdEventsScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
 import { registerForPushNotificationsAsync } from './services/pushNotifications';
+import { UserProvider } from './context/UserContext';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true, // Corrected: Use the new properties
-    shouldShowList: true,   // Corrected: Use the new properties
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
 });
 
-// This will be our main stack that handles app-wide navigation.
 const RootStack = createStackNavigator();
 
 export default function App() {
@@ -41,7 +42,6 @@ export default function App() {
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       console.log(response);
-      // Here you can add logic to navigate to a specific screen
     });
 
     return () => {
@@ -52,39 +52,43 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <RootStack.Navigator>
-          {/* The DrawerNavigator contains all our main screens (Tabs, Clubs, etc.) */}
-          <RootStack.Screen
-            name="MainDrawer"
-            component={DrawerNavigator}
-            options={{ headerShown: false }}
-          />
-          {/* EventDetailScreen is now a modal-style screen on top of everything else. */}
-          <RootStack.Screen name="EventDetail" component={EventDetailScreen} options={{ headerShown: false }} />
-          {/* Add ClubDetailScreen to the root stack to make it globally accessible */}
-          <RootStack.Screen
-            name="ClubDetail"
-            component={ClubDetailScreen}
-            options={{ headerShown: false }}
-          />
-          <RootStack.Screen
-            name="MyClubs"
-            component={MyClubsScreen}
-            options={{ headerShown: false }}
-          />
-          <RootStack.Screen
-            name="MySavedEvents"
-            component={MySavedEventsScreen}
-            options={{ headerShown: false }}
-          />
-          <RootStack.Screen
-            name="Notifications"
-            component={NotificationsScreen}
-            options={{ headerShown: false }}
-          />
-        </RootStack.Navigator>
-      </NavigationContainer>
+      <UserProvider>
+        <NavigationContainer>
+          <RootStack.Navigator>
+            <RootStack.Screen
+              name="MainDrawer"
+              component={DrawerNavigator}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen name="EventDetail" component={EventDetailScreen} options={{ headerShown: false }} />
+            <RootStack.Screen
+              name="ClubDetail"
+              component={ClubDetailScreen}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="MyClubs"
+              component={MyClubsScreen}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="MySavedEvents"
+              component={MySavedEventsScreen}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="MyRsvpdEvents"
+              component={MyRsvpdEventsScreen}
+              options={{ headerShown: false }}
+            />
+            <RootStack.Screen
+              name="Notifications"
+              component={NotificationsScreen}
+              options={{ headerShown: false }}
+            />
+          </RootStack.Navigator>
+        </NavigationContainer>
+      </UserProvider>
     </SafeAreaProvider>
   );
 }

@@ -16,13 +16,15 @@ import { Linking, Platform } from 'react-native';
 import { Club, exploreEvents, myEvents, recommendedEvents, Event, clubs } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { COLORS, SIZES } from '../theme';
+import { useUser } from '../context/UserContext';
 
 export default function ClubDetailScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<{ params: { club: Club } }, 'params'>>();
   const { club } = route.params;
   const insets = useSafeAreaInsets();
-  const [isJoined, setIsJoined] = useState(club.joined || false);
+  const { joinedClubs, toggleJoinedClub } = useUser();
+  const isJoined = joinedClubs.includes(String(club.id));
 
   // Combine all event sources and filter for events hosted by this club
   const allEvents = [...exploreEvents, ...myEvents, ...recommendedEvents];
@@ -47,14 +49,7 @@ export default function ClubDetailScreen() {
   };
 
   const handleJoinClub = () => {
-    // In a real app, this would be an API call.
-    // For now, we'll just toggle the state and update the mock data.
-    const clubIndex = clubs.findIndex((c) => c.id === club.id);
-    if (clubIndex !== -1) {
-      const newJoinedState = !isJoined;
-      setIsJoined(newJoinedState);
-      clubs[clubIndex].joined = newJoinedState; // Update the mock data directly
-    }
+    toggleJoinedClub(String(club.id));
   };
 
   return (

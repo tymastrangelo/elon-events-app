@@ -10,26 +10,18 @@ import {
 import MainLayout from './MainLayout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { COLORS, SIZES } from '../theme';
-import { clubs } from '../data/mockData';
+import { useUser } from '../context/UserContext';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const [joinedClubsCount, setJoinedClubsCount] = useState(0);
+  const { savedEvents, joinedClubs, rsvpdEvents } = useUser();
 
   const name = 'Tyler Mastrangelo';
   const email = 'tmastrangelo@elon.edu';
   const handle = '@' + email.split('@')[0]; // ➜ @tmastrangelo
-
-  useFocusEffect(
-    useCallback(() => {
-      // This code will run every time the screen comes into focus
-      const count = clubs.filter((club) => club.joined).length;
-      setJoinedClubsCount(count);
-    }, [])
-  );
 
   return (
     <MainLayout>
@@ -42,7 +34,7 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri: 'https://elonphoenix.com/images/2025/8/29/Tyler_Mastrangelo_20250821_XC_Media_Day_JK_1863.jpg?width=146' }}
+            source={{ uri: 'https://elonphoenix.com/images/2023/8/30/Tyler_Mastrangelo.jpg' }}
             style={styles.avatar}
           />
           <Text style={styles.name}>{name}</Text>
@@ -56,15 +48,15 @@ export default function ProfileScreen() {
         {/* Stats Section */}
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>12</Text>
-            <Text style={styles.statLabel}>Attended</Text>
+            <Text style={styles.statNumber}>{String(savedEvents.length)}</Text>
+            <Text style={styles.statLabel}>Saved</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>7</Text>
+            <Text style={styles.statNumber}>{String(rsvpdEvents.length)}</Text>
             <Text style={styles.statLabel}>RSVP’d</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{joinedClubsCount}</Text>
+            <Text style={styles.statNumber}>{String(joinedClubs.length)}</Text>
             <Text style={styles.statLabel}>Clubs</Text>
           </View>
         </View>
@@ -75,6 +67,11 @@ export default function ProfileScreen() {
             icon="bookmark-outline"
             label="My Saved Events"
             onPress={() => navigation.navigate('MySavedEvents')}
+          />
+          <MenuItem
+            icon="calendar-outline"
+            label="My RSVP'd Events"
+            onPress={() => navigation.navigate('MyRsvpdEvents')}
           />
           <MenuItem
             icon="people-outline"

@@ -14,11 +14,13 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
 import { myEvents, exploreEvents, recommendedEvents, Event } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
+import { useUser } from '../context/UserContext';
 
 export default function MySavedEventsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { savedEvents: savedEventsIds } = useUser();
   const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
-  const savedEvents = allEvents.filter((event) => event.saved);
+  const savedEvents = allEvents.filter((event) => savedEventsIds.includes(String(event.id)));
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>

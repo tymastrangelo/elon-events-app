@@ -19,29 +19,25 @@ import * as Calendar from 'expo-calendar';
 import { RootStackParamList } from '../navigation/types';
 import { Event, myEvents, exploreEvents, recommendedEvents, clubs } from '../data/mockData';
 import { COLORS, SIZES } from '../theme';
+import { useUser } from '../context/UserContext';
 
 export default function EventDetailScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'EventDetail'>>();
   const { event } = route.params;
-  const [isBookmarked, setIsBookmarked] = useState(event.saved || false);
+  const { rsvpdEvents, toggleRsvp, savedEvents, toggleSavedEvent } = useUser();
+  const isRsvpd = rsvpdEvents.includes(String(event.id));
+  const isBookmarked = savedEvents.includes(String(event.id));
   const insets = useSafeAreaInsets();
 
-  const handleBookmark = () => {
-    const newBookmarkState = !isBookmarked;
-    setIsBookmarked(newBookmarkState);
-
-    // In a real app, this would be an API call.
-    // For now, we find the event in our mock data arrays and update it.
-    const allEventArrays = [myEvents, exploreEvents, recommendedEvents];
-    for (const eventArray of allEventArrays) {
-      const eventIndex = eventArray.findIndex((e) => e.id === event.id);
-      if (eventIndex !== -1) {
-        eventArray[eventIndex].saved = newBookmarkState;
-        break; // Stop searching once found and updated
-      }
-    }
+  const handleRsvp = () => {
+    toggleRsvp(String(event.id));
   };
+
+  const handleBookmark = () => {
+    toggleSavedEvent(String(event.id));
+  };
+
 
   const handleMapOpen = () => {
     const encodedLocation = encodeURIComponent(event.location);
@@ -266,8 +262,13 @@ export default function EventDetailScreen() {
 
       {/* Floating RSVP Button */}
       <View style={[styles.rsvpWrapper, { bottom: insets.bottom + 10 }]}>
-        <TouchableOpacity style={styles.rsvpButton}>
-          <Text style={styles.rsvpButtonText}>RSVP</Text>
+        <TouchableOpacity
+          onPress={handleRsvp}
+          style={[styles.rsvpButton, isRsvpd && styles.rsvpdButton]}
+        >
+          <Text style={[styles.rsvpButtonText, isRsvpd && styles.rsvpdButtonText]}>
+            {isRsvpd ? 'Going' : 'RSVP'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -276,7 +277,7 @@ export default function EventDetailScreen() {
 
 const styles = StyleSheet.create({
   pageContainer: {
-    flex: 1, // Use constants for colors
+    flex: 1,
     backgroundColor: COLORS.background,
     position: 'relative',
   },
@@ -298,7 +299,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   bookmarkButton: {
-    position: 'absolute', // Use constants for colors
+    position: 'absolute',
     right: 20,
     zIndex: 10,
     backgroundColor: COLORS.white,
@@ -312,9 +313,9 @@ const styles = StyleSheet.create({
   },
   floatingAttendeeCard: {
     position: 'absolute',
-    top: 210, // Positioned to straddle the image bottom edge
+    top: 210,
     left: '50%',
-    transform: [{ translateX: -147.5 }], // Half of width 295
+    transform: [{ translateX: -147.5 }],
     width: 295,
     height: 60,
     backgroundColor: COLORS.white,
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: SIZES.padding,
-    paddingTop: 40, // Space for the floating card
+    paddingTop: 40,
   },
   title: {
     fontSize: 35,
@@ -383,7 +384,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: `${COLORS.primary}1A`, // primary with ~10% opacity
+    backgroundColor: `${COLORS.primary}1A`,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -443,5 +444,13 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
+  },
+  rsvpdButton: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  rsvpdButtonText: {
+    color: COLORS.primary,
   },
 });
