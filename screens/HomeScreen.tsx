@@ -36,6 +36,7 @@ export default function HomeScreen() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const name = 'Tyler'; // Let's add a personal touch
 
   const handleApplyFilters = (filters: any) => {
     console.log('Filters applied:', filters);
@@ -88,14 +89,10 @@ export default function HomeScreen() {
         <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
           <Feather name="menu" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
-        <View>
-          <Text style={styles.locationLabel}>Current Location</Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.locationText}>Elon University</Text>
-            <Feather name="chevron-down" size={14} color={COLORS.textSubtle} />
-          </View>
-        </View>
-        <TouchableOpacity onPress={() => navigation.navigate('Notifications')}>
+        <TouchableOpacity
+          style={styles.headerNotificationButton}
+          onPress={() => navigation.navigate('Notifications')}
+        >
           <Ionicons name="notifications-outline" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
@@ -103,14 +100,14 @@ export default function HomeScreen() {
       {/* Search + Filters */}
       <View style={styles.searchBox}>
         <Ionicons name="search-outline" size={18} color={COLORS.textMuted} style={{ marginRight: 6 }} />
-        <TextInput
-          placeholder="Search events and clubs..."
+        <TextInput // No style changes needed, but keeping for context
+          placeholder="Search events, clubs..."
           placeholderTextColor={COLORS.textMuted}
-          style={{ flex: 1, color: COLORS.textPrimary }}
+          style={styles.searchInput}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
-        <TouchableOpacity onPress={() => setFiltersVisible(true)}>
+        <TouchableOpacity style={styles.filterButton} onPress={() => setFiltersVisible(true)}>
           <Text style={{ color: COLORS.primary, fontWeight: '500' }}>Filters</Text>
         </TouchableOpacity>
       </View>
@@ -121,6 +118,12 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Welcome Header */}
+        <View style={styles.welcomeHeader}>
+          <Text style={styles.welcomeTitle}>Hello, {name} 👋</Text>
+          <Text style={styles.welcomeSubtitle}>Find events and clubs just for you.</Text>
+        </View>
+
         {/* LIVE EVENTS */}
         {filteredLiveEvents.length > 0 && (
           <>
@@ -135,19 +138,19 @@ export default function HomeScreen() {
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
               <Image source={{ uri: event.image }} style={styles.eventImage} />
+              <View style={styles.eventCardOverlay} />
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
+                <View style={styles.eventMeta}>
+                  <Feather name="map-pin" size={12} color={COLORS.white} />
+                  <Text style={styles.eventLocation}>{event.location}</Text>
+                </View>
+              </View>
               {event.isLive && (
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>LIVE</Text>
                 </View>
               )}
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <View style={styles.eventMeta}>
-                  <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
-                  <Text style={styles.eventLocation}>{event.location}</Text>
-                </View>
-                <Text style={styles.attendees}>{event.attendees} going</Text>
-              </View>
             </TouchableOpacity>
               ))}
             </ScrollView>
@@ -168,13 +171,13 @@ export default function HomeScreen() {
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
               <Image source={{ uri: event.image }} style={styles.eventImage} />
+              <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
+                <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
                 <View style={styles.eventMeta}>
-                  <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
+                  <Feather name="map-pin" size={12} color={COLORS.white} />
                   <Text style={styles.eventLocation}>{event.location}</Text>
                 </View>
-                <Text style={styles.attendees}>{event.attendees} going</Text>
               </View>
             </TouchableOpacity>
               ))}
@@ -196,13 +199,13 @@ export default function HomeScreen() {
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
               <Image source={{ uri: event.image }} style={styles.eventImage} />
+              <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
+                <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
                 <View style={styles.eventMeta}>
-                  <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
+                  <Feather name="map-pin" size={12} color={COLORS.white} />
                   <Text style={styles.eventLocation}>{event.location}</Text>
                 </View>
-                <Text style={styles.attendees}>{event.attendees} going</Text>
               </View>
             </TouchableOpacity>
               ))}
@@ -223,7 +226,7 @@ export default function HomeScreen() {
                 onPress={() => navigation.navigate('ClubDetail', { club })}
               >
                 <Image source={{ uri: club.image }} style={styles.clubImage} />
-                <View style={{ flex: 1 }}>
+                <View style={styles.clubInfo}>
                   <Text style={styles.clubName}>{club.name}</Text>
                   <Text style={styles.clubDesc}>{club.description}</Text>
                 </View>
@@ -246,67 +249,109 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, paddingHorizontal: SIZES.padding },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 6,
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 10,
   },
-  locationLabel: { fontSize: 12, color: COLORS.textMuted },
-  locationText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary, marginRight: 4 },
+  headerNotificationButton: {},
   searchBox: {
-    marginTop: 16,
+    marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.input,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: SIZES.radius,
   },
+  searchInput: {
+    flex: 1,
+    color: COLORS.textPrimary,
+    fontSize: 15,
+  },
+  filterButton: {},
   scrollContent: { paddingBottom: 120 },
+  welcomeHeader: {
+    marginTop: SIZES.padding,
+    marginBottom: SIZES.padding,
+  },
+  welcomeTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: COLORS.textPrimary,
+  },
+  welcomeSubtitle: {
+    fontSize: 15,
+    color: COLORS.textSubtle,
+    marginTop: 2,
+  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: SIZES.padding,
     marginBottom: 12,
   },
   sectionTitle: { fontSize: 18, fontWeight: '600', color: COLORS.textPrimary },
   eventCard: {
-    width: 220,
+    width: 280,
+    height: 180,
     marginRight: 16,
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
+    borderRadius: SIZES.radius * 1.5,
+    overflow: 'hidden',
+    position: 'relative',
     shadowColor: COLORS.black,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3,
-    position: 'relative',
   },
   eventImage: {
     width: '100%',
-    height: 120,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    height: '100%',
+  },
+  eventCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   liveIndicator: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
+    top: 12,
+    left: 12,
     backgroundColor: COLORS.live,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: SIZES.radius * 0.5,
   },
   liveText: {
     color: COLORS.white,
     fontWeight: '700',
     fontSize: 10,
   },
-  eventInfo: { padding: 10 },
-  eventTitle: { fontSize: 16, fontWeight: '500', color: COLORS.textPrimary, marginBottom: 4 },
-  eventMeta: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  eventLocation: { fontSize: 13, color: COLORS.textSubtle, marginLeft: 4 },
-  attendees: { fontSize: 12, color: COLORS.primary, fontWeight: '500' },
+  eventInfo: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 12,
+  },
+  eventTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.white,
+    marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  eventMeta: { flexDirection: 'row', alignItems: 'center' },
+  eventLocation: {
+    fontSize: 13,
+    color: COLORS.white,
+    marginLeft: 4,
+    fontWeight: '500',
+    opacity: 0.9,
+  },
   clubCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -315,7 +360,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.card,
     marginBottom: 12,
   },
-  clubImage: { width: 60, height: 60, borderRadius: 10, marginRight: 12 },
+  clubImage: { width: 50, height: 50, borderRadius: SIZES.radius, marginRight: 12 },
+  clubInfo: { flex: 1 },
   clubName: { fontSize: 16, fontWeight: '600', color: COLORS.textPrimary },
-  clubDesc: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
+  clubDesc: { fontSize: 13, color: COLORS.textSubtle, marginTop: 2 },
 });

@@ -12,30 +12,40 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { myEvents, exploreEvents, Event } from '../data/mockData';
+import { myEvents, exploreEvents, recommendedEvents, Event } from '../data/mockData';
 import { Modalize } from 'react-native-modalize';
 import { useRef } from 'react';
+import { useUser } from '../context/UserContext';
 
 const { width, height } = Dimensions.get('window');
-const eventsWithCoords: Event[] = [...myEvents, ...exploreEvents].filter(e => e.coordinates);
 
 // Import the centralized navigation types
 import { RootStackNavigationProp } from '../navigation/types';
 import { COLORS, SIZES } from '../theme';
+
+type ActiveTab = 'Saved' | 'RSVPd';
 
 export default function MapScreen() {
   // Since MapScreen is inside the TabNavigator, which is inside the Drawer,
   // we can use the RootStackNavigationProp directly.
   const navigation = useNavigation<RootStackNavigationProp>();
   const modalRef = useRef<Modalize>(null);
-  const [activeTab, setActiveTab] = useState<'Upcoming' | 'Ongoing' | 'Past'>('Upcoming');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('Saved');
+  const { savedEvents, rsvpdEvents } = useUser();
 
-  const getFilteredEvents = () => {
-    return eventsWithCoords; // You can update this to filter by tab
-  };
+  // 1. Get all events that have coordinates
+  const allEventsWithCoords = [...myEvents, ...exploreEvents, ...recommendedEvents].filter(
+    (e) => e.coordinates
+  );
+
+  // 2. Filter for pins: only show events the user has saved or RSVP'd to
+  const eventsForMapPins = allEventsWithCoords.filter(
+    (event) =>
+      savedEvents.includes(String(event.id)) || rsvpdEvents.includes(String(event.id))
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -58,7 +68,7 @@ export default function MapScreen() {
         showsCompass
         zoomControlEnabled
       >
-        {eventsWithCoords.map((event) => (
+        {eventsForMapPins.map((event) => (
           <Marker
             key={event.id}
             coordinate={event.coordinates!}
@@ -78,11 +88,11 @@ export default function MapScreen() {
       >
         <View style={styles.modalContent}>
           <View style={styles.tabBar}>
-            {['Upcoming', 'Ongoing', 'Past'].map((tab) => (
+            {(['Saved', 'RSVPd'] as ActiveTab[]).map((tab) => (
               <TouchableOpacity
                 key={tab}
                 style={[styles.tab, activeTab === tab && styles.activeTab]}
-                onPress={() => setActiveTab(tab as 'Upcoming' | 'Ongoing' | 'Past')}
+                onPress={() => setActiveTab(tab)}
               >
                 <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
                   {tab.toUpperCase()}
@@ -91,30 +101,61 @@ export default function MapScreen() {
             ))}
           </View>
 
-          <ScrollView contentContainerStyle={{ padding: SIZES.padding }}>
-            {getFilteredEvents().map((event) => (
-              <TouchableOpacity
-                key={event.id}
-                style={styles.eventCard}
-                onPress={() => {
-                  navigation.navigate('EventDetail', { event });
-                  modalRef.current?.close();
-                }}
-              >
-                <Image source={{ uri: event.image }} style={styles.thumbnail} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.eventTitle}>{event.title}</Text>
-                  <Text style={styles.eventLocation}>{event.location}</Text>
-                  <Text style={styles.attendees}>{event.attendees} going</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          <View style={{ padding: SIZES.padding }}>
+            {activeTab === 'Saved' && (
+              <EventList
+                events={allEventsWithCoords.filter((e) => savedEvents.includes(String(e.id)))}
+                navigation={navigation}
+                modalRef={modalRef}
+                emptyMessage="You haven't saved any events with a location."
+              />
+            )}
+            {activeTab === 'RSVPd' && (
+              <EventList
+                events={allEventsWithCoords.filter((e) => rsvpdEvents.includes(String(e.id)))}
+                navigation={navigation}
+                modalRef={modalRef}
+                emptyMessage="You haven't RSVP'd to any events with a location."
+              />
+            )}
+          </View>
         </View>
       </Modalize>
     </SafeAreaView>
   );
 }
+
+const EventList = ({ events, navigation, modalRef, emptyMessage }: any) => {
+  if (events.length === 0) {
+    return <Text style={styles.emptyStateText}>{emptyMessage}</Text>;
+  }
+  return (
+    <ScrollView>
+      {events.map((event: Event) => (
+        <TouchableOpacity
+          key={event.id}
+          style={styles.eventCard}
+          onPress={() => {
+            navigation.navigate('EventDetail', { event });
+            modalRef.current?.close();
+          }}
+        >
+          <Image source={{ uri: event.image }} style={styles.thumbnail} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.eventTitle}>{event.title}</Text>
+            <Text style={styles.eventLocation}>{event.location}</Text>
+            <Text style={styles.attendees}>{event.attendees} going</Text>
+          </View>
+          {event.isLive && (
+            <View style={styles.liveIndicator}>
+              <Text style={styles.liveText}>LIVE</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
+};
 
 const styles = StyleSheet.create({
   safeArea: {
@@ -179,6 +220,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
+    position: 'relative',
     padding: 12,
     backgroundColor: COLORS.card,
     borderRadius: 10,
@@ -203,5 +245,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: COLORS.primary,
     marginTop: 4,
+  },
+  emptyStateText: {
+    textAlign: 'center',
+    color: COLORS.textMuted,
+    fontSize: 15,
+    paddingVertical: 40,
+  },
+  liveIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: COLORS.live,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  liveText: {
+    color: COLORS.white,
+    fontWeight: '700',
+    fontSize: 10,
   },
 });
