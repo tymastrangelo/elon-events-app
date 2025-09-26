@@ -6,15 +6,29 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { COLORS, SIZES } from '../theme';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/types';
+
+// A reusable component for consistent settings rows
+const SettingsRow = ({ label, onPress, isDestructive = false }: { label: string, onPress: () => void, isDestructive?: boolean }) => (
+  <TouchableOpacity style={styles.row} onPress={onPress}>
+    <Text style={[styles.rowLabel, isDestructive && { color: COLORS.destructive }]}>
+      {label}
+    </Text>
+    <Ionicons name="chevron-forward" size={20} color={COLORS.textMuted} />
+  </TouchableOpacity>
+);
 
 export default function SettingsScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
+  // 💡 Future: This state would be managed by a global theme context.
   const [darkMode, setDarkMode] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
@@ -46,42 +60,59 @@ export default function SettingsScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Settings List */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
-
-        <View style={styles.row}>
-          <Text style={styles.rowLabel}>Dark Mode</Text>
-          <Switch
-            value={darkMode}
-            onValueChange={setDarkMode}
-            thumbColor={darkMode ? COLORS.primary : COLORS.border}
-            trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* --- Preferences Section --- */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>Dark Mode</Text>
+            <Switch
+              value={darkMode}
+              onValueChange={setDarkMode}
+              thumbColor={darkMode ? COLORS.primary : COLORS.border}
+              trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
+            />
+          </View>
+          <SettingsRow
+            label="Notifications"
+            onPress={() => navigation.navigate('NotificationSettings')}
           />
         </View>
 
-        <View style={styles.row}>
-          <Text style={styles.rowLabel}>Notifications</Text>
-          <Switch
-            value={notificationsEnabled}
-            onValueChange={setNotificationsEnabled}
-            thumbColor={notificationsEnabled ? COLORS.primary : COLORS.border}
-            trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
+        {/* --- About Section --- */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About</Text>
+          <SettingsRow
+            label="Feedback & Support"
+            onPress={() => Alert.alert('Feedback', 'Link to feedback form/email.')}
           />
+          <SettingsRow
+            label="Privacy Policy"
+            onPress={() => Alert.alert('Privacy Policy', 'Link to privacy policy page.')}
+          />
+          <SettingsRow
+            label="Terms of Service"
+            onPress={() => Alert.alert('Terms of Service', 'Link to terms of service page.')}
+          />
+          <View style={styles.row}>
+            <Text style={styles.rowLabel}>App Version</Text>
+            <Text style={styles.versionText}>1.0.0</Text>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
-
-        <TouchableOpacity onPress={handleSignOut} style={styles.button}>
-          <Text style={styles.buttonText}>Sign Out</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleDeleteAccount} style={[styles.button, styles.deleteBtn]}>
-          <Text style={[styles.buttonText, { color: COLORS.destructive }]}>Delete Account</Text>
-        </TouchableOpacity>
-      </View>
+        {/* --- Account Section --- */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          <TouchableOpacity onPress={handleSignOut} style={styles.button}>
+            <Text style={styles.buttonText}>Sign Out</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDeleteAccount} style={[styles.button, styles.deleteBtn]}>
+            <Text style={[styles.buttonText, { color: COLORS.destructive }]}>
+              Delete Account
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -109,7 +140,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: COLORS.textPrimary,
     marginBottom: 10,
   },
@@ -126,6 +157,10 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontSize: 15,
     color: COLORS.textSecondary,
+  },
+  versionText: {
+    fontSize: 15,
+    color: COLORS.textMuted,
   },
   button: {
     backgroundColor: COLORS.card,
