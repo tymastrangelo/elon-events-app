@@ -121,11 +121,24 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const userId = session?.user?.id;
     if (!userId) return;
 
-    isSaved
-      ? await supabase.from('saved_events').delete().match({ user_id: userId, event_id: eventId }) // Await this
-      : await supabase.from('saved_events').insert({ user_id: userId, event_id: eventId });
-    
-    fetchAllUserData(session);
+    // Optimistic update
+    const newSavedEvents = isSaved
+      ? savedEvents.filter(id => id !== eventId)
+      : [...savedEvents, eventId];
+    setSavedEvents(newSavedEvents);
+
+    try {
+      if (isSaved) {
+        await supabase.from('saved_events').delete().match({ user_id: userId, event_id: eventId });
+      } else {
+        await supabase.from('saved_events').insert({ user_id: userId, event_id: eventId });
+      }
+    } catch (error) {
+      console.error("Error toggling saved event:", error);
+      // Revert on error
+      setSavedEvents(savedEvents);
+      Alert.alert("Error", "Could not update saved events. Please try again.");
+    }
   };
 
   const toggleJoinedClub = async (clubId: string) => {
@@ -138,11 +151,26 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         Alert.alert('Action Not Allowed', 'You cannot leave a club you are an administrator for.');
         return;
       }
-      await supabase.from('club_memberships').delete().match({ user_id: userId, club_id: clubId });
+      // Optimistic update
+      setJoinedClubs(joinedClubs.filter(id => id !== clubId));
+      try {
+        await supabase.from('club_memberships').delete().match({ user_id: userId, club_id: clubId });
+      } catch (error) {
+        console.error("Error leaving club:", error);
+        setJoinedClubs(joinedClubs); // Revert
+        Alert.alert("Error", "Could not leave the club. Please try again.");
+      }
     } else {
-      await supabase.from('club_memberships').insert({ user_id: userId, club_id: clubId });
+      // Optimistic update
+      setJoinedClubs([...joinedClubs, clubId]);
+      try {
+        await supabase.from('club_memberships').insert({ user_id: userId, club_id: clubId });
+      } catch (error) {
+        console.error("Error joining club:", error);
+        setJoinedClubs(joinedClubs); // Revert
+        Alert.alert("Error", "Could not join the club. Please try again.");
+      }
     }
-    fetchAllUserData(session);
   };
 
   const toggleRsvp = async (eventId: string) => {
@@ -150,11 +178,23 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const userId = session?.user?.id;
     if (!userId) return;
     
-    isRsvpd
-      ? await supabase.from('rsvps').delete().match({ user_id: userId, event_id: eventId }) // Await this
-      : await supabase.from('rsvps').insert({ user_id: userId, event_id: eventId });
-      
-    fetchAllUserData(session);
+    // Optimistic update
+    const newRsvpdEvents = isRsvpd
+      ? rsvpdEvents.filter(id => id !== eventId)
+      : [...rsvpdEvents, eventId];
+    setRsvpdEvents(newRsvpdEvents);
+
+    try {
+      if (isRsvpd) {
+        await supabase.from('rsvps').delete().match({ user_id: userId, event_id: eventId });
+      } else {
+        await supabase.from('rsvps').insert({ user_id: userId, event_id: eventId });
+      }
+    } catch (error) {
+      console.error("Error toggling RSVP:", error);
+      setRsvpdEvents(rsvpdEvents); // Revert
+      Alert.alert("Error", "Could not update your RSVP. Please try again.");
+    }
   };
 
   return (

@@ -26,7 +26,6 @@ export default function ManageClubScreen() {
   const { clubId, clubName } = route.params;
   const { refreshAllData, allEvents, allClubs } = useUser();
   const [activeTab, setActiveTab] = useState<ActiveTab>('Events');
-  const [events, setEvents] = useState<Event[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,10 +39,6 @@ export default function ManageClubScreen() {
       supabase.from('club_members_with_profiles').select('user_id, full_name, avatar_url').eq('club_id', clubId),
       supabase.from('club_admins_with_profiles').select('user_id, full_name, avatar_url').eq('club_id', clubId),
     ]);
-
-    // Filter the globally available events to find ones for this club
-    const clubEvents = allEvents.filter(event => event.host === clubName);
-    setEvents(clubEvents);
 
     // Combine members and admins, marking admins and removing duplicates
     const memberMap = new Map<string, Member>();
@@ -62,7 +57,12 @@ export default function ManageClubScreen() {
     setMembers(Array.from(memberMap.values()));
 
     setLoading(false);
-  }, [clubId, clubName, allEvents]);
+  }, [clubId]);
+
+  // Derive events from global context state
+  const events = useMemo(() => {
+    return allEvents.filter(event => event.host === clubName);
+  }, [allEvents, clubName]);
 
   // Initial fetch
   useEffect(() => {
