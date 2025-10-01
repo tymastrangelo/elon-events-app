@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,54 +6,88 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
-import { clubs, exploreEvents, myEvents, recommendedEvents, Event } from '../data/mockData';
+import { Event, Club } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
+import { useUser } from '../context/UserContext';
+import { supabase } from '../lib/supabase';
 
-// --- Data Logic ---
-// In a real app, this data would come from a backend notification service.
-
-// 1. Find which clubs the user has joined.
-const joinedClubs = clubs.filter(club => club.joined);
-const joinedClubNames = joinedClubs.map(club => club.name);
-
-// 2. Find all events hosted by those clubs.
-const allEvents = [...exploreEvents, ...myEvents, ...recommendedEvents];
-const eventNotifications = allEvents
-  .filter(event => event.host && joinedClubNames.includes(event.host))
-  .map(event => {
-    const club = clubs.find(c => c.name === event.host);
-    return {
-      id: `event-${event.id}`,
-      club: {
-        id: club?.id || '',
-        name: club?.name || 'A Club',
-        avatar: club?.image || 'https://img.icons8.com/fluency/96/event-accepted-tentatively.png',
-      },
-      event: event,
-      timestamp: '2h ago' // Mock timestamp for now
-    };
-  });
+// This type now reflects the structure of our 'notifications' table
+interface NotificationItem {
+  id: number;
+  created_at: string;
+  type: string;
+  message: string;
+  is_read: boolean;
+  event_id: number | null;
+  club_id: number | null;
+  // We'll fetch related data separately or via views if needed
+  event?: Event;
+  club?: Partial<Club>;
+}
 
 export default function NotificationsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const { session, allEvents, allClubs } = useUser();
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const renderNotification = ({ item }: { item: (typeof eventNotifications)[0] }) => (
-    <TouchableOpacity 
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!session?.user) {
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('recipient_user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        console.error("Error fetching notifications", error);
+        setLoading(false);
+        return;
+      }
+
+      // Enrich notifications with event and club details from context
+      const formattedNotifications = data.map(notif => {
+        const event = notif.event_id ? allEvents.find(e => e.id === notif.event_id) : undefined;
+        const club = notif.club_id ? allClubs.find(c => c.id === notif.club_id) : undefined;
+        return { ...notif, event, club };
+      });
+
+      setNotifications(formattedNotifications);
+      setLoading(false);
+    };
+
+    fetchNotifications();
+  }, [session, allEvents, allClubs]);
+
+  const renderNotification = ({ item }: { item: NotificationItem }) => (
+    <TouchableOpacity
       style={styles.notificationCard}
-      onPress={() => navigation.navigate('EventDetail', { event: item.event })}
+      // Navigate to the event if one is associated with the notification
+      onPress={() => {
+        if (item.event) {
+          navigation.navigate('EventDetail', { event: item.event });
+        }
+      }}
+      disabled={!item.event} // Disable press if there's no event to navigate to
     >
-      <Image source={{ uri: item.club.avatar }} style={styles.avatar} />
+      <Image source={{ uri: item.club?.image || 'https://placekitten.com/80/80' }} style={styles.avatar} />
       <View style={styles.notificationTextContainer}>
-        <Text style={styles.notificationText}>
-          <Text style={{ fontWeight: '600' }}>{item.club.name}</Text> posted a new event: <Text style={{ fontWeight: '600' }}>{item.event.title}</Text>
-        </Text>
-        <Text style={styles.timestamp}>{item.timestamp}</Text>
+        <Text style={styles.notificationText}>{item.message}</Text>
+        <Text style={styles.timestamp}>{new Date(item.created_at).toLocaleDateString()}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -71,11 +105,17 @@ export default function NotificationsScreen() {
 
       {/* Notifications List */}
       <FlatList
-        data={eventNotifications}
-        keyExtractor={(item) => item.id}
+        data={notifications}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderNotification}
         ListEmptyComponent={
-          <Text style={styles.emptyState}>You have no new notifications.</Text>
+          <View style={styles.emptyContainer}>
+            {loading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <Text style={styles.emptyState}>You have no new notifications.</Text>
+            )}
+          </View>
         }
         contentContainerStyle={styles.listContent}
       />
@@ -135,5 +175,11 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 80,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
   },
 });

@@ -14,6 +14,7 @@ import { useNavigation, DrawerActions } from '@react-navigation/native';
 import { COLORS, SIZES } from '../theme';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
+import { supabase } from '../lib/supabase';
 
 // A reusable component for consistent settings rows
 const SettingsRow = ({ label, onPress, isDestructive = false }: { label: string, onPress: () => void, isDestructive?: boolean }) => (
@@ -33,8 +34,17 @@ export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const handleSignOut = () => {
-    Alert.alert('Signed out', 'You have been signed out.');
-    // 🔐 Future: integrate actual sign out logic
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: () => supabase.auth.signOut(),
+      },
+    ]);
   };
 
   const handleDeleteAccount = () => {
@@ -68,7 +78,10 @@ export default function SettingsScreen() {
             <Text style={styles.rowLabel}>Dark Mode</Text>
             <Switch
               value={darkMode}
-              onValueChange={setDarkMode}
+            onValueChange={() => {
+              // Temporarily show an alert until the feature is implemented
+              Alert.alert('Coming Soon!', 'Dark mode is currently under development.');
+            }}
               thumbColor={darkMode ? COLORS.primary : COLORS.border}
               trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
             />

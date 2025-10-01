@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,25 +17,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
 import * as Calendar from 'expo-calendar';
 import { RootStackParamList } from '../navigation/types';
-import { Event, myEvents, exploreEvents, recommendedEvents, clubs } from '../data/mockData';
+import { Event, Club } from '../data/mockData';
 import { COLORS, SIZES } from '../theme';
 import { useUser } from '../context/UserContext';
+import { supabase } from '../lib/supabase';
 
 export default function EventDetailScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'EventDetail'>>();
   const { event } = route.params;
   const { rsvpdEvents, toggleRsvp, savedEvents, toggleSavedEvent } = useUser();
+  const [hostClubId, setHostClubId] = useState<number | null>(null);
+  const [attendees, setAttendees] = useState<{ avatar_url: string | null }[]>([]);
   const isRsvpd = rsvpdEvents.includes(String(event.id));
   const isBookmarked = savedEvents.includes(String(event.id));
   const insets = useSafeAreaInsets();
 
   const handleRsvp = () => {
-    // FUTURE: This could be enhanced in two ways:
-    // 1. Link to PhoenixConnect: Open the event's PhoenixConnect link. After returning to the app,
-    //    show a prompt like "Did you RSVP?" to manually update the state.
-    // 2. Backend Integration: Implement a proper backend service to handle RSVPs. The button would
-    //    trigger an API call, and the app state would update based on the successful response.
     if (isRsvpd) {
       Alert.alert(
         'Cancel RSVP',
@@ -84,15 +82,49 @@ export default function EventDetailScreen() {
 
 
   const handleMapOpen = () => {
-    const encodedLocation = encodeURIComponent(event.location);
+    const encodedLocation = encodeURIComponent(event.location || '');
     const url = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
     Linking.openURL(url);
   };
 
-  const handleHostPress = () => {
-    const hostClub = clubs.find((club) => club.name === event.host);
-    if (hostClub) {
-      navigation.navigate('ClubDetail', { club: hostClub });
+  // Fetch the host club's ID when the component mounts
+  useEffect(() => {
+    const fetchHostClubId = async () => {
+      if (!event.host) return;
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('id')
+        .eq('name', event.host)
+        .single();
+      if (data) {
+        setHostClubId(data.id);
+      }
+    };
+    fetchHostClubId();
+  }, [event.host]);
+
+  // Fetch attendee avatars and count for the RSVP section
+  useEffect(() => {
+    const fetchAttendees = async () => {
+      if (!event.rsvps_enabled) return;
+
+      const { data, error } = await supabase
+        .from('rsvps_with_profiles')
+        .select('avatar_url')
+        .eq('event_id', event.id);
+
+      if (data) {
+        setAttendees(data);
+      }
+    };
+    fetchAttendees();
+  }, [event.id, event.rsvps_enabled, rsvpdEvents]); // re-fetch if rsvp status changes
+
+  const handleHostPress = async () => {
+    if (hostClubId) {
+      navigation.navigate('ClubDetail', { clubId: hostClubId });
+    } else {
+      Alert.alert('Error', 'Could not find club details.');
     }
   };
 
@@ -104,27 +136,26 @@ export default function EventDetailScreen() {
     }
 
     const createCalendarEvent = async () => {
-      const now = new Date();
-      let startDate = new Date(event.date);
+      const startDate = new Date(event.date);
+      let endDate: Date;
 
-      // If the hardcoded event date is in the past, intelligently adjust it for the future.
-      if (startDate < now) {
-        // Set the event to the same month/day but for the current year.
-        startDate.setFullYear(now.getFullYear());
-        // If that date has *still* passed this year, set it for next year.
-        if (startDate < now) {
-          startDate.setFullYear(now.getFullYear() + 1);
-        }
+      if (event.end_date) {
+        endDate = new Date(event.end_date);
+        // If start date is in the past, but end date isn't, something is wrong.
+        // For simplicity, we won't try to adjust recurring/past events with end dates.
+        // This logic primarily helps for single events without an end_date.
+      } else {
+        // If no end_date, assume a default duration (e.g., 2 hours)
+        endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
       }
 
-      // Assume a default duration of 2 hours if no end time is specified
-      const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
 
       const eventDetails = {
         title: event.title,
         startDate,
-        endDate,
-        location: event.location,
+        endDate, 
+        location: event.location || '',
         notes: event.description || `Event hosted by ${event.host}.`,
       };
 
@@ -167,14 +198,21 @@ export default function EventDetailScreen() {
   };
 
   // This function formats the ISO date string into a readable format for the UI.
-  const formatEventDate = (dateString: string): { day: string, time: string } => {
-    const date = new Date(dateString);
-    const day = date.toLocaleDateString('en-US', {
+  const formatEventDate = (startString: string, endString: string | null): { day: string, time: string } => {
+    const startDate = new Date(startString);
+    const day = startDate.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
     });
-    const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+
+    const startTime = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    
+    const endTime = endString 
+      ? new Date(endString).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+      : null;
+
+    const time = endTime ? `${startTime} - ${endTime}` : startTime;
     return { day, time };
   };
 
@@ -202,29 +240,29 @@ export default function EventDetailScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Event Image */}
-        <Image source={{ uri: event.image }} style={styles.image} />
+        <Image source={{ uri: event.image || 'https://placekitten.com/400/240' }} style={styles.image} />
 
         {/* Floating Attendee Card */}
-        <View style={styles.floatingAttendeeCard}>
-          <View style={styles.avatarGroup}>
-            <Image
-              source={{ uri: 'https://randomuser.me/api/portraits/women/1.jpg' }}
-              style={styles.avatar}
-            />
-            <Image
-              source={{ uri: 'https://randomuser.me/api/portraits/men/2.jpg' }}
-              style={[styles.avatar, { zIndex: 2 }]}
-            />
-            <Image
-              source={{ uri: 'https://randomuser.me/api/portraits/men/3.jpg' }}
-              style={[styles.avatar, { zIndex: 1 }]}
-            />
+        {event.rsvps_enabled && attendees.length > 0 && (
+          <View style={styles.floatingAttendeeCard}>
+            <View style={styles.avatarGroup}>
+              {attendees.slice(0, 3).map((attendee, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: attendee.avatar_url || 'https://placekitten.com/100/100' }}
+                  style={[styles.avatar, { zIndex: 3 - index }]}
+                />
+              ))}
+            </View>
+            <Text style={styles.attendeeText}>{attendees.length} Going</Text>
+            <TouchableOpacity
+              style={styles.inviteButton}
+              onPress={() => navigation.navigate('InviteUsers', { eventId: event.id, eventName: event.title })}
+            >
+              <Text style={styles.inviteButtonText}>Invite</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.attendeeText}>+{event.attendees} Going</Text>
-          <TouchableOpacity style={styles.inviteButton}>
-            <Text style={styles.inviteButtonText}>Invite</Text>
-          </TouchableOpacity>
-        </View>
+        )}
 
         <View style={styles.content}>
           {/* Title */}
@@ -245,8 +283,8 @@ export default function EventDetailScreen() {
                   <Feather name="calendar" size={24} color={COLORS.primary} />
                 </View>
                 <View>
-                  <Text style={styles.infoTitle}>{formatEventDate(event.date).day}</Text>
-                  <Text style={styles.infoSubtitle}>{formatEventDate(event.date).time}</Text>
+                  <Text style={styles.infoTitle}>{formatEventDate(event.date, event.end_date).day}</Text>
+                  <Text style={styles.infoSubtitle}>{formatEventDate(event.date, event.end_date).time}</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -259,8 +297,8 @@ export default function EventDetailScreen() {
             </View>
             <TouchableOpacity onPress={handleMapOpen}>
               <View>
-                <Text style={styles.infoTitle}>{event.location}</Text>
-                <Text style={styles.infoSubtitle}>{event.room || 'View on map'}</Text>
+                <Text style={styles.infoTitle}>{event.location || 'No location specified'}</Text>
+                <Text style={styles.infoSubtitle}>{event.room ? `Room: ${event.room}` : 'View on map'}</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -305,16 +343,18 @@ export default function EventDetailScreen() {
       </ScrollView>
 
       {/* Floating RSVP Button */}
-      <View style={[styles.rsvpWrapper, { bottom: insets.bottom + 10 }]}>
-        <TouchableOpacity
-          onPress={handleRsvp}
-          style={[styles.rsvpButton, isRsvpd && styles.rsvpdButton]}
-        >
-          <Text style={[styles.rsvpButtonText, isRsvpd && styles.rsvpdButtonText]}>
-            {isRsvpd ? 'Going' : 'RSVP'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {event.rsvps_enabled && (
+        <View style={[styles.rsvpWrapper, { bottom: insets.bottom + 10 }]}>
+          <TouchableOpacity
+            onPress={handleRsvp}
+            style={[styles.rsvpButton, isRsvpd && styles.rsvpdButton]}
+          >
+            <Text style={[styles.rsvpButtonText, isRsvpd && styles.rsvpdButtonText]}>
+              {isRsvpd ? 'Going' : 'RSVP'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

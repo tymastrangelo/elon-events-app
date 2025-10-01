@@ -1,5 +1,5 @@
 // screens/HomeScreen.tsx
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,15 +15,11 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation, DrawerActions, CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackNavigationProp, ExploreStackParamList } from '../navigation/types';
+import { supabase } from '../lib/supabase';
 import FiltersModal from '../components/FiltersModal';
-import {
-  myEvents,
-  exploreEvents,
-  recommendedEvents,
-  clubs,
-  Event,
-  Club,
-} from '../data/mockData';
+import { Event, Club } from '../data/mockData';
+import { useUser } from '../context/UserContext';
+import { isToday, isTomorrow, isWithinInterval, addDays } from 'date-fns';
 import { COLORS, SIZES } from '../theme';
 
 export default function HomeScreen() {
@@ -36,51 +32,89 @@ export default function HomeScreen() {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const name = 'Tyler'; // Let's add a personal touch
+  const { session, loading, joinedClubs, allEvents, allClubs, refreshAllData } = useUser();
+  const [activeFilters, setActiveFilters] = useState<{ time: string | null }>({ time: 'All Time' });
 
-  const handleApplyFilters = (filters: any) => {
-    console.log('Filters applied:', filters);
+  const handleApplyFilters = (filters: { time: string | null }) => {
+    setActiveFilters(filters);
+    setFiltersVisible(false); // This was missing, causing the bug.
   };
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // In a real app, you would re-fetch your data here.
-    // We'll simulate it with a timeout.
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  }, []);
+    await refreshAllData(); // Now valid because the function is async
+    setRefreshing(false);
+  }, [refreshAllData]);
 
   // Memoized filtering to prevent re-calculation on every render
   const filteredLiveEvents = useMemo(() => {
-    const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
-    const liveEvents = allEvents.filter((e) => e.isLive);
+    const now = new Date();
+    // An event is "live" if the current time is between its start and end time.
+    const liveEvents = allEvents.filter(e => {
+      const startDate = new Date(e.date);
+      const endDate = e.end_date ? new Date(e.end_date) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // Default 2hr duration
+      return now >= startDate && now <= endDate;
+    });
     if (!searchQuery) return liveEvents;
-    return liveEvents.filter((e) =>
-      e.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+    return liveEvents.filter((e) => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [allEvents, searchQuery]);
 
   const filteredUpcomingEvents = useMemo(() => {
-    if (!searchQuery) return exploreEvents;
-    return exploreEvents.filter((event) =>
-      event.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+    const now = new Date();
+    // Upcoming events are events that haven't started yet
+    let upcoming = allEvents.filter((e) => new Date(e.date) > now);
+
+    // Apply time filters
+    if (activeFilters.time && activeFilters.time !== 'All Time') {
+      const today = new Date();
+      if (activeFilters.time === 'Today') {
+        upcoming = upcoming.filter(e => isToday(new Date(e.date)));
+      } else if (activeFilters.time === 'Tomorrow') {
+        upcoming = upcoming.filter(e => isTomorrow(new Date(e.date)));
+      } else if (activeFilters.time === 'This Week') {
+        const endOfWeek = addDays(today, 7);
+        upcoming = upcoming.filter(e => isWithinInterval(new Date(e.date), { start: today, end: endOfWeek }));
+      }
+    }
+
+    // Apply search query last
+    if (searchQuery) {
+      upcoming = upcoming.filter((event) => event.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+
+    return upcoming;
+  }, [allEvents, searchQuery, activeFilters]);
 
   const filteredRecommendedEvents = useMemo(() => {
-    if (!searchQuery) return recommendedEvents;
-    return recommendedEvents.filter((event) =>
-      event.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+    const now = new Date();
+    const joinedClubNames = allClubs
+      .filter(club => joinedClubs.includes(String(club.id)))
+      .map(club => club.name);
+    
+    // We will still filter out live events to avoid showing them twice in prominent positions,
+    // but we will allow an event to be in both "Upcoming" and "Recommended" as that is less jarring.
+    // This makes the carousel count match the "See All" page.
+    const recommended = allEvents.filter(event => event.host && joinedClubNames.includes(event.host) && !filteredLiveEvents.includes(event) && new Date(event.date) >= now);
+    
+    if (!searchQuery) return recommended;
+    return recommended.filter(event => event.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [allEvents, allClubs, joinedClubs, searchQuery, filteredLiveEvents]);
+
+  const filteredRecurringEvents = useMemo(() => {
+    const recurring = allEvents.filter(event => event.is_recurring);
+    if (!searchQuery) return recurring;
+    return recurring.filter(event => event.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [allEvents, searchQuery]);
 
   const filteredClubs = useMemo(() => {
-    const joinedClubs = clubs.filter((club) => club.joined);
-    if (!searchQuery) return joinedClubs;
-    return joinedClubs.filter((club) =>
-      club.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [searchQuery]);
+    const joined = allClubs.filter((club) => joinedClubs.includes(String(club.id)));
+    if (!searchQuery) return joined;
+    return joined.filter((club) =>
+      club.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [allClubs, joinedClubs, searchQuery]);
+
+  const firstName = session?.user?.user_metadata?.full_name?.split(' ')[0] || 'Friend';
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -120,7 +154,7 @@ export default function HomeScreen() {
       >
         {/* Welcome Header */}
         <View style={styles.welcomeHeader}>
-          <Text style={styles.welcomeTitle}>Hello, {name} 👋</Text>
+          <Text style={styles.welcomeTitle}>Hello, {firstName} 👋</Text>
           <Text style={styles.welcomeSubtitle}>Find events and clubs just for you.</Text>
         </View>
 
@@ -144,16 +178,16 @@ export default function HomeScreen() {
               style={styles.eventCard}
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
-              <Image source={{ uri: event.image }} style={styles.eventImage} />
+              <Image source={{ uri: event.image || 'https://placekitten.com/280/180' }} style={styles.eventImage} />
               <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
                 <View style={styles.eventMeta}>
                   <Feather name="map-pin" size={12} color={COLORS.white} />
-                  <Text style={styles.eventLocation}>{event.location}</Text>
+                  <Text style={styles.eventLocation}>{event.location || 'Campus'}</Text>
                 </View>
               </View>
-              {event.isLive && (
+              {event.is_live && (
                 <View style={styles.liveIndicator}>
                   <Text style={styles.liveText}>LIVE</Text>
                 </View>
@@ -184,13 +218,13 @@ export default function HomeScreen() {
               style={styles.eventCard}
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
-              <Image source={{ uri: event.image }} style={styles.eventImage} />
+              <Image source={{ uri: event.image || 'https://placekitten.com/280/180' }} style={styles.eventImage} />
               <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
                 <View style={styles.eventMeta}>
                   <Feather name="map-pin" size={12} color={COLORS.white} />
-                  <Text style={styles.eventLocation}>{event.location}</Text>
+                  <Text style={styles.eventLocation}>{event.location || 'Campus'}</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -203,7 +237,7 @@ export default function HomeScreen() {
         {filteredRecommendedEvents.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recommended</Text>
+              <Text style={styles.sectionTitle}>Recommended For You</Text>
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate('EventList', { title: 'Recommended', filter: 'recommended' })
@@ -219,13 +253,49 @@ export default function HomeScreen() {
               style={styles.eventCard}
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
-              <Image source={{ uri: event.image }} style={styles.eventImage} />
+              <Image source={{ uri: event.image || 'https://placekitten.com/280/180' }} style={styles.eventImage} />
               <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
                 <View style={styles.eventMeta}>
                   <Feather name="map-pin" size={12} color={COLORS.white} />
-                  <Text style={styles.eventLocation}>{event.location}</Text>
+                  <Text style={styles.eventLocation}>{event.location || 'Campus'}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </>
+        )}
+
+        {/* RECURRING EVENTS */}
+        {filteredRecurringEvents.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recurring Events</Text>
+              {/* Optionally add a "See All" for recurring events */}
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {filteredRecurringEvents.map((event) => (
+            <TouchableOpacity
+              key={`recurring-${event.id}`}
+              style={styles.eventCard}
+              onPress={() => navigation.navigate('EventDetail', { event })}
+            >
+              <Image source={{ uri: event.image || 'https://placekitten.com/280/180' }} style={styles.eventImage} />
+              <View style={styles.eventCardOverlay} />
+              <View style={styles.eventInfo}>
+                <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
+                <View style={styles.eventMeta}>
+                  <Feather name="repeat" size={12} color={COLORS.white} />
+                  <Text style={styles.eventLocation}>
+                    {
+                      event.recurrence_pattern === 'weekly' ? 'Every Week' :
+                      event.recurrence_pattern === 'bi-weekly' ? 'Every 2 Weeks' :
+                      event.recurrence_pattern === 'monthly' ? 'Every Month' :
+                      'Recurring'
+                    }
+                  </Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -247,12 +317,12 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={club.id}
                 style={styles.clubCard}
-                onPress={() => navigation.navigate('ClubDetail', { club })}
+                onPress={() => navigation.navigate('ClubDetail', { clubId: club.id })}
               >
-                <Image source={{ uri: club.image }} style={styles.clubImage} />
+                <Image source={{ uri: club.image || 'https://placekitten.com/100/100' }} style={styles.clubImage} />
                 <View style={styles.clubInfo}>
                   <Text style={styles.clubName}>{club.name}</Text>
-                  <Text style={styles.clubDesc}>{club.description}</Text>
+                  <Text style={styles.clubDesc} numberOfLines={2}>{club.description}</Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -260,14 +330,19 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      <FiltersModal
-        visible={filtersVisible}
-        onClose={() => setFiltersVisible(false)}
-        onApply={handleApplyFilters}
-      />
+      {/* Only render the modal after the initial data load is complete */}
+      {!loading && (
+        <FiltersModal
+          visible={filtersVisible}
+          onClose={() => setFiltersVisible(false)}
+          onApply={handleApplyFilters}
+          activeFilters={activeFilters}
+        />
+      )}
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background, paddingHorizontal: SIZES.padding },

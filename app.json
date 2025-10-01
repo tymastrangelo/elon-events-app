@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "elon-events-app",
-    "slug": "elon-events-app",
+    "name": "Elon Events",
+    "slug": "elon-events",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,18 +13,30 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tymastrangelo.elonevents",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "package": "com.tymastrangelo.elonevents"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "06c1f0f7-4004-4e4f-8b8d-682cfcb944a0"
+      }
     }
-  }
+  },
+  "name": "elon-events-app"
 }

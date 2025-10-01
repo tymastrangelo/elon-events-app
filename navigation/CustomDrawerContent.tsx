@@ -1,14 +1,16 @@
 import React from 'react';
-import { View, StyleSheet, Image, Text } from 'react-native';
+import { View, StyleSheet, Image, Text, TouchableOpacity } from 'react-native';
 import { DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useUser } from '../context/UserContext';
 import { COLORS, SIZES } from '../theme';
 
 const CustomDrawerContent = (props: any) => {
   const insets = useSafeAreaInsets();
-  const name = 'Tyler Mastrangelo';
-  const email = 'tmastrangelo@elon.edu';
+  const { session } = useUser();
+  const name = session?.user?.user_metadata?.full_name || 'Elon Student';
+  const email = session?.user?.email || '';
 
   return (
     <View style={styles.container}>
@@ -17,14 +19,17 @@ const CustomDrawerContent = (props: any) => {
         contentContainerStyle={{ paddingTop: 0 }} // Remove padding to allow header to be at the very top
       >
         {/* Profile Header */}
-        <View style={[styles.profileHeader, { paddingTop: insets.top + SIZES.base }]}>
-          <Image
-            source={{ uri: 'https://snworksceo.imgix.net/enn/66efa747-1661-44c4-9478-aa8a5fe881a3.sized-1000x1000.jpeg?w=1000' }}
-            style={styles.avatar}
-          />
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.email}>{email}</Text>
-        </View>
+        <TouchableOpacity onPress={() => props.navigation.navigate('Home', { screen: 'Profile' })}>
+          <View style={[styles.profileHeader, { paddingTop: insets.top + SIZES.base }]}>
+            <Image
+              // Use the avatar_url from user metadata, with a fallback
+              source={{ uri: session?.user?.user_metadata?.avatar_url || 'https://snworksceo.imgix.net/enn/66efa747-1661-44c4-9478-aa8a5fe881a3.sized-1000x1000.jpeg?w=1000' }}
+              style={styles.avatar}
+            />
+            <Text style={styles.name}>{name}</Text>
+            <Text style={styles.email}>{email}</Text>
+          </View>
+        </TouchableOpacity>
         <DrawerItemList {...props} />
       </DrawerContentScrollView>
 

@@ -1,5 +1,5 @@
 // screens/ClubDetailScreen.tsx
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,16 +7,18 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { RouteProp, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Linking, Platform } from 'react-native';
-import { Club, exploreEvents, myEvents, recommendedEvents, Event, clubs } from '../data/mockData';
+import { Club, Event } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { COLORS, SIZES } from '../theme';
 import { useUser } from '../context/UserContext';
+import { supabase } from '../lib/supabase';
 
 const formatEventDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -28,15 +30,62 @@ const formatEventDate = (dateString: string): string => {
 
 export default function ClubDetailScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<{ params: { club: Club } }, 'params'>>();
-  const { club } = route.params;
+  const route = useRoute<RouteProp<{ params: { clubId: number } }, 'params'>>();
+  const { clubId } = route.params;
   const insets = useSafeAreaInsets();
   const { joinedClubs, toggleJoinedClub } = useUser();
-  const isJoined = joinedClubs.includes(String(club.id));
 
-  // Combine all event sources and filter for events hosted by this club
-  const allEvents = [...exploreEvents, ...myEvents, ...recommendedEvents];
-  const hostedEvents = allEvents.filter((event) => event.host === club.name);
+  const [club, setClub] = useState<Club | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [hostedEvents, setHostedEvents] = useState<Event[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  const isJoined = club ? joinedClubs.includes(String(club.id)) : false;
+
+  useEffect(() => {
+    const fetchClubData = async () => {
+      setLoading(true);
+      // Fetch the main club details
+      const { data: clubData, error: clubError } = await supabase
+        .from('clubs')
+        .select('*')
+        .eq('id', clubId)
+        .single();
+
+      if (clubError) {
+        console.error('Error fetching club details:', clubError);
+        setLoading(false);
+        return;
+      }
+
+      setClub(clubData as Club);
+
+      // Fetch the hosted events for this club
+      setLoadingEvents(true);
+      // Build the query to fetch events
+      let eventsQuery = supabase
+        .from('events')
+        .select('*')
+        .eq('host', clubData.name);
+
+      // If the user is NOT a member of this club, add a filter to only show public events.
+      // The RLS policy already handles this, but an explicit filter is safer and clearer.
+      if (!joinedClubs.includes(String(clubId))) {
+        eventsQuery = eventsQuery.eq('members_only', false);
+      }
+
+      const { data: eventsData, error: eventsError } = await eventsQuery;
+
+      if (eventsError) {
+        console.error('Error fetching hosted events:', eventsError);
+      } else {
+        setHostedEvents(eventsData as Event[]);
+      }
+      setLoadingEvents(false);
+      setLoading(false);
+    };
+    fetchClubData();
+  }, [clubId, joinedClubs]);
 
   useFocusEffect(
     useCallback(() => {
@@ -49,7 +98,7 @@ export default function ClubDetailScreen() {
   );
 
   const handleEmail = () => {
-    if (club.contactEmail) {
+    if (club?.contactEmail) {
       const email = club.contactEmail;
       const mailto = `mailto:${email}`;
       Linking.openURL(mailto);
@@ -57,8 +106,17 @@ export default function ClubDetailScreen() {
   };
 
   const handleJoinClub = () => {
+    if (!club) return;
     toggleJoinedClub(String(club.id));
   };
+
+  if (loading || !club) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.pageContainer}>
@@ -70,7 +128,7 @@ export default function ClubDetailScreen() {
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Image source={{ uri: club.image }} style={styles.image} />
+        <Image source={{ uri: club.image || 'https://placekitten.com/400/240' }} style={styles.image} />
         <View style={styles.content}>
           <Text style={styles.title}>{club.name}</Text>
           <Text style={styles.category}>{club.category} Club</Text>
@@ -106,27 +164,29 @@ export default function ClubDetailScreen() {
           <Text style={styles.description}>{club.description}</Text>
 
           {/* Hosted Events */}
-          {hostedEvents.length > 0 && (
-            <>
-              <Text style={[styles.sectionTitle, { marginTop: SIZES.padding * 1.5 }]}>Hosted Events</Text>
-              {hostedEvents.map((event) => (
-                <TouchableOpacity
-                  key={event.id}
-                  style={styles.eventCard}
-                  onPress={() => navigation.navigate('EventDetail', { event })}
-                >
-                  <Image source={{ uri: event.image }} style={styles.eventThumbnail} />
-                  <View style={styles.eventCardContent}>
-                    <Text style={styles.eventDate}>{formatEventDate(event.date)}</Text>
-                    <Text style={styles.eventTitle}>{event.title}</Text>
-                    <View style={styles.eventMetaRow}>
-                      <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
-                      <Text style={styles.eventLocation}>{event.location}</Text>
-                    </View>
+          <Text style={[styles.sectionTitle, { marginTop: SIZES.padding * 1.5 }]}>Hosted Events</Text>
+          {loadingEvents ? (
+            <ActivityIndicator style={{ marginTop: 20 }} color={COLORS.primary} />
+          ) : hostedEvents.length > 0 ? (
+            hostedEvents.map((event) => (
+              <TouchableOpacity
+                key={event.id}
+                style={styles.eventCard}
+                onPress={() => navigation.navigate('EventDetail', { event })}
+              >
+                <Image source={{ uri: event.image || 'https://placekitten.com/144/144' }} style={styles.eventThumbnail} />
+                <View style={styles.eventCardContent}>
+                  <Text style={styles.eventDate}>{formatEventDate(event.date)}</Text>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                  <View style={styles.eventMetaRow}>
+                    <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
+                    <Text style={styles.eventLocation}>{event.location || 'No location'}</Text>
                   </View>
-                </TouchableOpacity>
-              ))}
-            </>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.noEventsText}>This club has no upcoming events.</Text>
           )}
 
           {/* Leave Club Button - Renders inside the scroll view when joined */}
@@ -270,6 +330,11 @@ const styles = StyleSheet.create({
     // Allow location text to wrap if it's too long
     flexShrink: 1,
     ...Platform.select({ android: { flex: 1 } }),
+  },
+  noEventsText: {
+    color: COLORS.textMuted,
+    marginTop: 10,
+    fontStyle: 'italic',
   },
   joinWrapper: {
     position: 'absolute',

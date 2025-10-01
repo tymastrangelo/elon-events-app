@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,17 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
-import { myEvents, exploreEvents, recommendedEvents, Event } from '../data/mockData';
+import { Event } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { useUser } from '../context/UserContext';
+import { supabase } from '../lib/supabase';
 
 const formatEventDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -27,11 +29,12 @@ const formatEventDate = (dateString: string): string => {
 export default function MySavedEventsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const [activeTab, setActiveTab] = useState<'Upcoming' | 'Past'>('Upcoming');
-  const { savedEvents } = useUser();
-  const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
+  // Use allEvents and loading status directly from the context
+  const { savedEvents, allEvents, loading: userLoading } = useUser();
 
   const { upcomingEvents, pastEvents } = useMemo(() => {
     const now = new Date();
+    // Filter the globally available events
     const savedEventsList = allEvents.filter((event) => savedEvents.includes(String(event.id)));
 
     const upcoming = savedEventsList
@@ -43,7 +46,7 @@ export default function MySavedEventsScreen() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return { upcomingEvents: upcoming, pastEvents: past };
-  }, [savedEvents]);
+  }, [savedEvents, allEvents]);
 
   const displayedEvents = activeTab === 'Upcoming' ? upcomingEvents : pastEvents;
 
@@ -82,23 +85,27 @@ export default function MySavedEventsScreen() {
             style={styles.eventCard}
             onPress={() => navigation.navigate('EventDetail', { event: item })}
           >
-            <Image source={{ uri: item.image }} style={styles.thumbnail} />
+            <Image source={{ uri: item.image || 'https://placekitten.com/144/144' }} style={styles.thumbnail} />
             <View style={styles.cardContent}>
               <Text style={styles.date}>{formatEventDate(item.date)}</Text>
               <Text style={styles.title}>{item.title}</Text>
               <View style={styles.metaRow}>
                 <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
-                <Text style={styles.location}>{item.location}</Text>
+                <Text style={styles.location}>{item.location || 'No location'}</Text>
               </View>
             </View>
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyState}>
-            {activeTab === 'Upcoming'
-              ? "You haven't saved any upcoming events."
-              : 'No past saved events.'}
-          </Text>
+          <View style={styles.emptyContainer}>
+            {userLoading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <Text style={styles.emptyState}>
+                {activeTab === 'Upcoming' ? "You haven't saved any upcoming events." : 'No past saved events.'}
+              </Text>
+            )}
+          </View>
         }
         contentContainerStyle={styles.listContent}
       />
@@ -162,6 +169,12 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 80,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
   },
   eventCard: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,20 +6,38 @@ import {
   TouchableOpacity,
   FlatList,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
-import { clubs, Club } from '../data/mockData';
+import { Club } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { useUser } from '../context/UserContext';
+import { supabase } from '../lib/supabase';
 
 export default function MyClubsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { joinedClubs: joinedClubsIds } = useUser();
-  const joinedClubs = clubs.filter((club) => joinedClubsIds.includes(String(club.id)));
+  const { joinedClubs: joinedClubIds, loading: userLoading } = useUser();
+  const [allClubs, setAllClubs] = useState<Club[]>([]);
+  const [clubsLoading, setClubsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchClubs = async () => {
+      if (joinedClubIds.length === 0) {
+        setClubsLoading(false);
+        return;
+      }
+      setClubsLoading(true);
+      const { data, error } = await supabase.from('clubs').select('*').in('id', joinedClubIds);
+      if (error) console.error("Error fetching joined clubs", error);
+      else setAllClubs(data as Club[]);
+      setClubsLoading(false);
+    };
+    fetchClubs();
+  }, [joinedClubIds]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
@@ -34,14 +52,14 @@ export default function MyClubsScreen() {
 
       {/* Club List */}
       <FlatList
-        data={joinedClubs}
+        data={allClubs}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.clubCard}
-            onPress={() => navigation.navigate('ClubDetail', { club: item })}
+            onPress={() => navigation.navigate('ClubDetail', { clubId: item.id })}
           >
-            <Image source={{ uri: item.image }} style={styles.clubImage} />
+            <Image source={{ uri: item.image || 'https://placekitten.com/120/120' }} style={styles.clubImage} />
             <View style={styles.clubInfo}>
               <Text style={styles.clubName}>{item.name}</Text>
               <Text style={styles.clubDescription} numberOfLines={2}>
@@ -51,7 +69,13 @@ export default function MyClubsScreen() {
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyState}>You haven't joined any clubs yet.</Text>
+          <View style={styles.emptyContainer}>
+            {userLoading || clubsLoading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <Text style={styles.emptyState}>You haven't joined any clubs yet.</Text>
+            )}
+          </View>
         }
         contentContainerStyle={styles.clubList}
       />
@@ -85,6 +109,12 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 80,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
   },
   clubCard: {
     flexDirection: 'row',

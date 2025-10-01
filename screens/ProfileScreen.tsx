@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,22 +6,44 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  RefreshControl,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import MainLayout from './MainLayout';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { COLORS, SIZES } from '../theme';
-import { myEvents, exploreEvents, recommendedEvents } from '../data/mockData';
 import { useUser } from '../context/UserContext';
+import { supabase } from '../lib/supabase';
+import { Event } from '../data/mockData';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { savedEvents, joinedClubs, rsvpdEvents } = useUser();
+  const { session, savedEvents, joinedClubs, rsvpdEvents, allEvents, loading: userContextLoading, refreshAllData } = useUser();
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Refetch user data when the screen is focused to see updates
+  // This is good practice to keep session data fresh.
+  useFocusEffect(
+    React.useCallback(() => {
+      const refreshUserData = async () => {
+        // This will trigger the onAuthStateChange listener in AuthContext
+        await supabase.auth.refreshSession();
+      };
+      refreshUserData();
+    }, [])
+  );
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await refreshAllData(); // Use the global refresh function from context
+    setRefreshing(false);
+  }, [refreshAllData]);
 
   const { upcomingSavedCount, upcomingRsvpdCount } = useMemo(() => {
-    const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
     const now = new Date();
 
     const upcomingSaved = allEvents.filter(
@@ -33,11 +55,11 @@ export default function ProfileScreen() {
     ).length;
 
     return { upcomingSavedCount: upcomingSaved, upcomingRsvpdCount: upcomingRsvpd };
-  }, [savedEvents, rsvpdEvents]);
+  }, [savedEvents, rsvpdEvents, allEvents]);
 
-  const name = 'Tyler Mastrangelo';
-  const email = 'tmastrangelo@elon.edu';
-  const handle = '@' + email.split('@')[0]; // ➜ @tmastrangelo
+  const user = session?.user;
+  const name = user?.user_metadata?.full_name || 'Elon Student';
+  const handle = user?.email ? `@${user.email.split('@')[0]}` : '';
 
   return (
     <MainLayout>
@@ -46,16 +68,20 @@ export default function ProfileScreen() {
           styles.container,
           { paddingTop: insets.top + SIZES.padding, paddingBottom: insets.bottom + SIZES.padding * 2 },
         ]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
       >
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri: 'https://snworksceo.imgix.net/enn/66efa747-1661-44c4-9478-aa8a5fe881a3.sized-1000x1000.jpeg?w=1000' }}
+            // Use the avatar_url from user metadata, with a fallback
+            source={{ uri: session?.user?.user_metadata?.avatar_url || 'https://placekitten.com/200/200' }}
             style={styles.avatar}
           />
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.handle}>{handle}</Text>
-          <TouchableOpacity style={styles.editButton}>
+          <Text style={styles.name}>{name}</Text> 
+          <Text style={styles.handle}>{user?.email}</Text>
+          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfile')}>
             <Feather name="edit-2" size={16} color={COLORS.primary} />
             <Text style={styles.editText}>Edit Profile</Text>
           </TouchableOpacity>
@@ -63,18 +89,26 @@ export default function ProfileScreen() {
 
         {/* Stats Section */}
         <View style={styles.statsContainer}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{String(upcomingSavedCount)}</Text>
-            <Text style={styles.statLabel}>Saved</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{String(upcomingRsvpdCount)}</Text>
-            <Text style={styles.statLabel}>RSVP’d</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{String(joinedClubs.length)}</Text>
-            <Text style={styles.statLabel}>Clubs</Text>
-          </View>
+          {userContextLoading ? (
+            <View style={styles.statBox}>
+              <ActivityIndicator color={COLORS.primary} />
+            </View>
+          ) : (
+            <>
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>{String(upcomingSavedCount)}</Text>
+                <Text style={styles.statLabel}>Saved</Text>
+              </View>
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>{String(upcomingRsvpdCount)}</Text>
+                <Text style={styles.statLabel}>RSVP’d</Text>
+              </View>
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>{String(joinedClubs.length)}</Text>
+                <Text style={styles.statLabel}>Clubs</Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Menu Options */}
@@ -97,13 +131,15 @@ export default function ProfileScreen() {
           <MenuItem
             icon="notifications-outline"
             label="Notification Settings"
-            onPress={() => navigation.navigate('NotificationSettings')}
-          />
-          <MenuItem icon="help-circle-outline" label="Feedback / Support" />
+            onPress={() => navigation.navigate('NotificationSettings')}/>
+          <MenuItem icon="help-circle-outline" label="Feedback / Support" onPress={() => Alert.alert('Feedback', 'Link to feedback form/email.')} />
         </View>
 
         {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={() => supabase.auth.signOut()}
+        >
           <Ionicons name="log-out-outline" size={20} color={COLORS.white} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
@@ -112,14 +148,12 @@ export default function ProfileScreen() {
   );
 }
 
-function MenuItem({ icon, label, onPress }: { icon: any; label: string; onPress?: () => void }) {
-  return (
-    <TouchableOpacity style={styles.menuItem} activeOpacity={0.6} onPress={onPress}>
-      <Ionicons name={icon} size={20} color={COLORS.primary} />
-      <Text style={styles.menuLabel}>{label}</Text>
-    </TouchableOpacity>
-  );
-}
+const MenuItem = ({ icon, label, onPress }: { icon: any; label: string; onPress?: () => void }) => (
+  <TouchableOpacity style={styles.menuItem} activeOpacity={0.6} onPress={onPress}>
+    <Ionicons name={icon} size={20} color={COLORS.primary} />
+    <Text style={styles.menuLabel}>{label}</Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   container: {

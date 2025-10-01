@@ -1,5 +1,5 @@
 // screens/MapScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,16 +9,18 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { myEvents, exploreEvents, recommendedEvents, Event } from '../data/mockData';
+import { Event } from '../data/mockData';
 import { Modalize } from 'react-native-modalize';
 import { useRef } from 'react';
 import { useUser } from '../context/UserContext';
+import { supabase } from '../lib/supabase';
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,18 +36,16 @@ export default function MapScreen() {
   const navigation = useNavigation<RootStackNavigationProp>();
   const modalRef = useRef<Modalize>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('Saved');
-  const { savedEvents, rsvpdEvents } = useUser();
+  const { savedEvents, rsvpdEvents, allEvents, loading: userLoading } = useUser();
 
-  // 1. Get all events that have coordinates
-  const allEventsWithCoords = [...myEvents, ...exploreEvents, ...recommendedEvents].filter(
-    (e) => e.coordinates
-  );
+  const allEventsWithCoords = useMemo(() => allEvents.filter(e => e.coordinates), [allEvents]);
 
-  // 2. Filter for pins: only show events the user has saved or RSVP'd to
-  const eventsForMapPins = allEventsWithCoords.filter(
-    (event) =>
-      savedEvents.includes(String(event.id)) || rsvpdEvents.includes(String(event.id))
-  );
+  const eventsForMapPins = useMemo(() => {
+    return allEventsWithCoords.filter(
+      (event) =>
+        savedEvents.includes(String(event.id)) || rsvpdEvents.includes(String(event.id))
+    );
+  }, [allEventsWithCoords, savedEvents, rsvpdEvents]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -73,7 +73,7 @@ export default function MapScreen() {
             key={event.id}
             coordinate={event.coordinates!}
             title={event.title}
-            description={event.location}
+            description={event.location || ''}
             onCalloutPress={() => navigation.navigate('EventDetail', { event })}
           />
         ))}
@@ -107,7 +107,8 @@ export default function MapScreen() {
                 events={allEventsWithCoords.filter((e) => savedEvents.includes(String(e.id)))}
                 navigation={navigation}
                 modalRef={modalRef}
-                emptyMessage="You haven't saved any events with a location."
+                emptyMessage="You haven't saved any events with a location." 
+                loading={userLoading}
               />
             )}
             {activeTab === 'RSVPd' && (
@@ -116,6 +117,7 @@ export default function MapScreen() {
                 navigation={navigation}
                 modalRef={modalRef}
                 emptyMessage="You haven't RSVP'd to any events with a location."
+                loading={userLoading}
               />
             )}
           </View>
@@ -125,34 +127,51 @@ export default function MapScreen() {
   );
 }
 
-const EventList = ({ events, navigation, modalRef, emptyMessage }: any) => {
+const EventList = ({ events, navigation, modalRef, emptyMessage, loading }: any) => {
+  if (loading) {
+    return (
+      <View style={styles.emptyStateContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
   if (events.length === 0) {
     return <Text style={styles.emptyStateText}>{emptyMessage}</Text>;
   }
   return (
     <ScrollView>
-      {events.map((event: Event) => (
-        <TouchableOpacity
-          key={event.id}
-          style={styles.eventCard}
-          onPress={() => {
-            navigation.navigate('EventDetail', { event });
-            modalRef.current?.close();
-          }}
-        >
-          <Image source={{ uri: event.image }} style={styles.thumbnail} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.eventTitle}>{event.title}</Text>
-            <Text style={styles.eventLocation}>{event.location}</Text>
-            <Text style={styles.attendees}>{event.attendees} going</Text>
-          </View>
-          {event.isLive && (
+      {events.map((event: Event) => {
+        // Correctly determine if an event is live based on current time
+        const now = new Date();
+        const startDate = new Date(event.date);
+        // Assume a 2-hour duration if no end date is provided
+        const endDate = event.end_date ? new Date(event.end_date) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+        const isCurrentlyLive = now >= startDate && now <= endDate;
+
+        return (
+          <TouchableOpacity
+            key={event.id}
+            style={styles.eventCard}
+            onPress={() => {
+              navigation.navigate('EventDetail', { event });
+              modalRef.current?.close();
+            }}
+          >
+            <Image source={{ uri: event.image || 'https://placekitten.com/120/120' }} style={styles.thumbnail} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.eventTitle}>{event.title}</Text>
+              <Text style={styles.eventLocation}>{event.location || 'No location specified'}</Text>
+              <Text style={styles.attendees}>{event.attendees} going</Text>
+            </View>
+            {isCurrentlyLive && (
             <View style={styles.liveIndicator}>
               <Text style={styles.liveText}>LIVE</Text>
             </View>
           )}
         </TouchableOpacity>
-      ))}
+        );
+      })}
     </ScrollView>
   );
 };
@@ -250,6 +269,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: COLORS.textMuted,
     fontSize: 15,
+    paddingVertical: 40,
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 40,
   },
   liveIndicator: {

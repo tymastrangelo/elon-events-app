@@ -8,10 +8,14 @@ import ClubsScreen from '../screens/ClubsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import CustomDrawerContent from './CustomDrawerContent';
 import ClubsStackNavigator from './ClubsStackNavigator';
+import { useUser } from '../context/UserContext';
+import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 
 const Drawer = createDrawerNavigator();
 
 export default function DrawerNavigator() {
+  const { isAdmin } = useUser();
+
   return (
     <Drawer.Navigator
       screenOptions={{
@@ -45,6 +49,16 @@ export default function DrawerNavigator() {
           drawerIcon: ({ color, size }) => <Ionicons name="people-outline" size={size} color={color} />,
         }}
       />
+      {/* Conditionally render the Admin Dashboard link */}
+      {isAdmin && (
+        <Drawer.Screen
+          name="Admin Dashboard"
+          component={AdminDashboardScreen}
+          options={{
+            drawerIcon: ({ color, size }) => <Ionicons name="build-outline" size={size} color={color} />,
+          }}
+        />
+      )}
       <Drawer.Screen
         name="Settings"
         component={SettingsScreen}

@@ -1,227 +1,195 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Share, Alert } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
-import { Post, clubs } from '../data/mockData';
+import { Post } from '../data/mockData';
+import { COLORS, SIZES } from '../theme'; // Assuming you have a theme file
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/types';
-import { COLORS, SIZES } from '../theme';
+import type { RootStackNavigationProp } from '../navigation/types';
+import { formatDistanceToNow } from 'date-fns';
+import { supabase } from '../lib/supabase';
+import { useUser } from '../context/UserContext';
 
 interface PostCardProps {
-  post: Post;
+  // The data from the Supabase function is slightly different from the mock Post type.
+  // Let's create a more accurate type for the props.
+  post: Post & {
+    club_id: number;
+    club_name: string;
+    club_avatar: string;
+    is_liked: boolean;
+    comments: number;
+  };
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post }) => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const [isLiked, setIsLiked] = useState(post.isLiked);
+export default function PostCard({ post }: PostCardProps) {
+  const navigation = useNavigation<RootStackNavigationProp>();
+  const { session } = useUser();
+
+  // Local state for optimistic updates
+  const [isLiked, setIsLiked] = useState(post.is_liked);
   const [likeCount, setLikeCount] = useState(post.likes);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [showHeart, setShowHeart] = useState(false);
-  const heartAnimation = useRef(new Animated.Value(0)).current;
-  let lastTap: number | null = null;
+
+  const handleLike = async () => {
+    if (!session?.user) return;
+
+    const currentlyLiked = isLiked;
+    const newLikeCount = currentlyLiked ? likeCount - 1 : likeCount + 1;
+
+    // Optimistic UI update
+    setIsLiked(!currentlyLiked);
+    setLikeCount(newLikeCount);
+
+    try {
+      if (currentlyLiked) {
+        // Unlike the post
+        const { error } = await supabase.from('post_likes').delete().match({ post_id: post.id, user_id: session.user.id });
+        if (error) throw error;
+      } else {
+        // Like the post
+        const { error } = await supabase.from('post_likes').insert({ post_id: post.id, user_id: session.user.id });
+        if (error) throw error;
+      }
+    } catch (error) {
+      console.error('Error updating like status:', error);
+      // Revert optimistic update on failure
+      setIsLiked(currentlyLiked);
+      setLikeCount(likeCount);
+    }
+  };
 
   const handleClubPress = () => {
-    const fullClub = clubs.find((c) => c.id === post.club.id);
-    if (fullClub) navigation.navigate('ClubDetail', { club: fullClub });
+    navigation.navigate('ClubDetail', { clubId: post.club_id });
   };
 
-  const handleLike = () => {
-    const newLikedState = !isLiked;
-    setIsLiked(newLikedState);
-    setLikeCount(newLikedState ? likeCount + 1 : likeCount - 1);
-    return newLikedState;
-  };
-
-  const handleDoubleTap = () => {
-    const now = Date.now();
-    const DOUBLE_PRESS_DELAY = 300;
-    if (lastTap && (now - lastTap) < DOUBLE_PRESS_DELAY) {
-      if (!isLiked) {
-        handleLike();
+  const handleShare = async () => {
+    try {
+      let shareMessage = post.caption;
+      // Add more context if it's an event post
+      if (post.type === 'event' && post.eventDetails?.title) {
+        shareMessage = `Check out this event: ${post.eventDetails.title}\n\n${post.caption}`;
       }
-      setShowHeart(true);
-    } else {
-      lastTap = now;
-    }
-  };
 
-  useEffect(() => {
-    if (showHeart) {
-      Animated.sequence([
-        Animated.spring(heartAnimation, { toValue: 1, useNativeDriver: true }),
-        Animated.timing(heartAnimation, { toValue: 0, duration: 200, delay: 500, useNativeDriver: true }),
-      ]).start(() => {
-        setShowHeart(false);
+      await Share.share({
+        message: `${shareMessage}\n\nShared from Elon Events App`,
+        // In a production app, you could add a URL for deep linking
+        // url: `yourappscheme://post/${post.id}`
       });
+    } catch (error: any) {
+      Alert.alert('Error', 'Could not share post.');
     }
-  }, [showHeart]);
-
-  const animatedHeartStyle = {
-    transform: [{ scale: heartAnimation }],
-    opacity: heartAnimation,
-  };
-
-  const toggleTextExpansion = () => {
-    setIsExpanded(!isExpanded);
-  };
-
-  const timeAgo = (timestamp: string) => {
-    // In a real app, you'd use a library like `date-fns` for accurate time formatting
-    return '2h ago';
   };
 
   return (
     <View style={styles.card}>
-      {/* Card Header - Now Touchable */}
-      <TouchableOpacity onPress={handleClubPress} activeOpacity={0.8}>
-        <View style={styles.header}>
-          <Image source={{ uri: post.club.avatar }} style={styles.avatar} />
-          <Text style={styles.clubName}>{post.club.name}</Text>
-        </View>
-      </TouchableOpacity>
-
-      {/* Post Image with Double-Tap Handler */}
-      <TouchableWithoutFeedback onPress={handleDoubleTap}>
-        <View>
-          <Image source={{ uri: post.image }} style={styles.postImage} />
-          {showHeart && (
-            <Animated.View style={[styles.heartOverlay, animatedHeartStyle]}>
-              <Ionicons name="heart" size={100} color={COLORS.white} />
-            </Animated.View>
-          )}
-        </View>
-      </TouchableWithoutFeedback>
-
-      {/* Action Buttons */}
-      <View style={styles.actions}>
-        <TouchableOpacity onPress={handleLike} style={styles.actionButton}>
-          <Ionicons
-            name={isLiked ? 'heart' : 'heart-outline'}
-            size={28}
-            color={isLiked ? COLORS.primary : COLORS.textSecondary}
-          />
+      {/* Card Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.clubInfo} onPress={handleClubPress}>
+          <Image source={{ uri: post.club_avatar }} style={styles.avatar} />
+          <View>
+            <Text style={styles.clubName}>{post.club_name}</Text>
+            <Text style={styles.timestamp}>
+              {formatDistanceToNow(new Date(post.timestamp), { addSuffix: true })}
+            </Text>
+          </View>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name="chatbubble-outline" size={26} color={COLORS.textSecondary} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}>
-          <Feather name="send" size={24} color={COLORS.textSecondary} />
+        <TouchableOpacity>
+          <Feather name="more-horizontal" size={20} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      {/* Likes and Caption */}
-      <View style={styles.content}>
-        <Text style={styles.likes}>{likeCount.toLocaleString()} likes</Text>
-        <Text style={styles.captionContainer} numberOfLines={isExpanded ? undefined : 2}>
-          {/* Club name is clickable for navigation */}
-          <Text style={styles.clubName} onPress={handleClubPress}>{post.club.name} </Text>
-          {/* Caption is clickable for expansion */}
-          <Text style={styles.caption} onPress={toggleTextExpansion}>{post.caption}</Text>
-        </Text>
-      </View>
+      {/* Caption */}
+      <Text style={styles.caption}>{post.caption}</Text>
 
-      {/* Event Details (if applicable) */}
-      {post.type === 'event' && post.eventDetails && (
-        <View style={styles.eventDetails}>
-          <View style={styles.eventInfoRow}>
-            <Ionicons name="calendar-outline" size={16} color={COLORS.textSubtle} />
-            <Text style={styles.eventText}>{new Date(post.eventDetails.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} at {new Date(post.eventDetails.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}</Text>
-          </View>
-          <View style={styles.eventInfoRow}>
-            <Ionicons name="location-outline" size={16} color={COLORS.textSubtle} />
-            <Text style={styles.eventText}>{post.eventDetails.location}</Text>
-          </View>
+      {/* Image */}
+      {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
+
+      {/* Event Snippet */}
+      {post.type === 'event' && post.eventDetails?.date && (
+        <View style={styles.eventSnippet}>
+          <Text style={styles.eventSnippetTitle}>{post.eventDetails.title}</Text>
+          <Text style={styles.eventSnippetDetails}>
+            {/* Ensure date is valid before formatting to prevent crash */} 
+            {new Date(post.eventDetails.date).toLocaleDateString()} - {post.eventDetails.location || 'TBA'}
+          </Text>
         </View>
       )}
 
-      <Text style={styles.timestamp}>{timeAgo(post.timestamp)}</Text>
+      {/* Action Buttons */}
+      <View style={styles.actions}>
+        <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
+          <Ionicons
+            name={isLiked ? 'heart' : 'heart-outline'}
+            size={24}
+            color={isLiked ? COLORS.destructive : COLORS.textSecondary}
+          />
+          <Text style={styles.actionText}>{likeCount}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
+          <Ionicons name="share-social-outline" size={24} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: COLORS.card,
+    borderRadius: SIZES.radius,
     marginBottom: SIZES.padding,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    padding: SIZES.base * 1.5,
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: SIZES.base * 1.5,
+    marginBottom: SIZES.base,
   },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 10,
-  },
-  clubName: {
-    fontWeight: '600',
-    fontSize: 14,
-    color: COLORS.textPrimary,
+  clubInfo: { flexDirection: 'row', alignItems: 'center' },
+  avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
+  clubName: { fontWeight: '600', color: COLORS.textPrimary },
+  timestamp: { fontSize: 12, color: COLORS.textMuted },
+  caption: {
+    color: COLORS.textSecondary,
+    lineHeight: 20,
+    marginBottom: SIZES.base,
   },
   postImage: {
     width: '100%',
-    aspectRatio: 1 / 1, // Square image
+    height: 200,
+    borderRadius: SIZES.radius,
+    marginTop: SIZES.base,
   },
-  heartOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  actions: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: SIZES.base * 1.5,
-  },
-  actionButton: {
-    marginRight: 16,
-  },
-  content: {
-    paddingHorizontal: SIZES.base * 1.5,
-  },
-  likes: {
-    fontWeight: '600',
-    marginBottom: 6,
-    color: COLORS.textPrimary,
-  },
-  captionContainer: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  caption: {
-    fontWeight: '400',
-  },
-  eventDetails: {
-    marginTop: 10,
-    marginHorizontal: SIZES.base * 1.5,
-    padding: SIZES.base * 1.5,
+  eventSnippet: {
+    marginTop: SIZES.base,
+    padding: SIZES.base,
     backgroundColor: COLORS.input,
     borderRadius: SIZES.radius,
   },
-  eventInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
+  eventSnippetTitle: {
+    fontWeight: '600',
+    color: COLORS.textPrimary,
   },
-  eventText: {
-    marginLeft: 8,
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  timestamp: {
+  eventSnippetDetails: {
     fontSize: 12,
     color: COLORS.textMuted,
-    paddingHorizontal: SIZES.base * 1.5,
-    paddingTop: 8,
-    paddingBottom: SIZES.padding,
+    marginTop: 2,
+  },
+  actions: {
+    flexDirection: 'row',
+    paddingTop: SIZES.base * 1.5,
+    marginTop: SIZES.base,
+    borderTopWidth: 1,
+    borderColor: COLORS.border,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: SIZES.padding,
+  },
+  actionText: {
+    marginLeft: 6,
+    color: COLORS.textSecondary,
+    fontSize: 14,
   },
 });
-
-export default PostCard;

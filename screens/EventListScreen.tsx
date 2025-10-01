@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RootStackNavigationProp, RootStackParamList } from '../navigation/types';
-import { exploreEvents, myEvents, recommendedEvents, Event } from '../data/mockData';
+import { Event } from '../data/mockData';
+import { supabase } from '../lib/supabase';
+import { useUser } from '../context/UserContext';
 import { COLORS, SIZES } from '../theme';
 
 const formatEventDate = (dateString: string): string => {
@@ -28,21 +31,47 @@ export default function EventListScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'EventList'>>();
   const { title: headerTitle, filter } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [allClubs, setAllClubs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { joinedClubs } = useUser();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const [eventsRes, clubsRes] = await Promise.all([
+        supabase.from('events').select('*'),
+        supabase.from('clubs').select('id, name'),
+      ]);
+
+      if (eventsRes.data) setAllEvents(eventsRes.data as Event[]);
+      if (clubsRes.data) setAllClubs(clubsRes.data);
+
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
   const filteredEvents = useMemo(() => {
-    const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
     let baseEvents: Event[];
+    const now = new Date();
+    const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
 
     switch (filter) {
       case 'live':
-        baseEvents = allEvents.filter((event) => event.isLive);
+        baseEvents = allEvents.filter(e => {
+          const eventDate = new Date(e.date);
+          return eventDate >= threeHoursAgo && eventDate <= now;
+        });
         break;
       case 'upcoming':
-        // Using exploreEvents as the source for "Upcoming" from HomeScreen
-        baseEvents = exploreEvents;
+        baseEvents = allEvents.filter((e) => new Date(e.date) > now);
         break;
       case 'recommended':
-        baseEvents = recommendedEvents;
+        const joinedClubNames = allClubs
+          .filter(club => joinedClubs.includes(String(club.id)))
+          .map(club => club.name);
+        baseEvents = allEvents.filter(event => event.host && joinedClubNames.includes(event.host));
         break;
       default:
         baseEvents = [];
@@ -51,21 +80,21 @@ export default function EventListScreen() {
     if (!searchQuery) return baseEvents;
 
     return baseEvents.filter((e) => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [filter, searchQuery]);
+  }, [filter, searchQuery, allEvents, allClubs, joinedClubs]);
 
   const renderEvent = ({ item }: { item: Event }) => (
     <TouchableOpacity
       style={styles.eventCard}
       onPress={() => navigation.navigate('EventDetail', { event: item })}
     >
-      <Image source={{ uri: item.image }} style={styles.thumbnail} />
+      <Image source={{ uri: item.image || 'https://placekitten.com/144/144' }} style={styles.thumbnail} />
       <View style={styles.cardContent}>
         <Text style={styles.date}>{formatEventDate(item.date)}</Text>
         <Text style={styles.title}>{item.title}</Text>
         {item.host && <Text style={styles.host}>Hosted by {item.host}</Text>}
         <View style={styles.metaRow}>
           <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
-          <Text style={styles.location}>{item.location}</Text>
+          <Text style={styles.location}>{item.location || 'No location'}</Text>
         </View>
         <Text style={styles.attendees}>{item.attendees} going</Text>
       </View>
@@ -101,7 +130,13 @@ export default function EventListScreen() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ paddingBottom: 120 }}
           ListEmptyComponent={
-            <Text style={styles.emptyState}>No events found.</Text>
+            <View style={styles.emptyContainer}>
+              {loading ? (
+                <ActivityIndicator size="large" color={COLORS.primary} />
+              ) : (
+                <Text style={styles.emptyState}>No events found.</Text>
+              )}
+            </View>
           }
         />
       </View>
@@ -191,5 +226,11 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 80,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
   },
 });

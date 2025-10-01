@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,15 +11,18 @@ import {
   UIManager,
   Platform,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation, CompositeNavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { RootStackNavigationProp, EventsStackParamList } from '../navigation/types';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { exploreEvents, myEvents, recommendedEvents, Event } from '../data/mockData';
+import { RootStackNavigationProp } from '../navigation/types';
+import { Event } from '../data/mockData'; // Keep the Event type
 import { COLORS, SIZES } from '../theme';
+import { supabase } from '../lib/supabase';
+import { useUser } from '../context/UserContext';
 
+// Required for LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
@@ -35,6 +38,7 @@ const formatEventDate = (dateString: string): string => {
 export default function EventsScreen() {
   // Combine types for the local stack and the root stack for full type safety
   const navigation = useNavigation<RootStackNavigationProp>();
+  const { allEvents, loading } = useUser(); // Use events and loading state from context
   const [searchActive, setSearchActive] = useState(false);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<'Upcoming' | 'Ongoing' | 'Past'>('Upcoming');
@@ -55,24 +59,23 @@ export default function EventsScreen() {
   };
 
   const filteredEvents = useMemo(() => {
-    const allEvents = [...myEvents, ...exploreEvents, ...recommendedEvents];
-    let events: Event[] = [];
+    let filtered: Event[] = [];
 
     // 1. Filter by active tab
     if (activeTab === 'Ongoing') {
-      events = allEvents.filter((event) => event.isLive);
+      filtered = allEvents.filter((event) => event.is_live);
     } else if (activeTab === 'Upcoming') {
-      events = allEvents.filter((event) => !event.isLive);
+      filtered = allEvents.filter((event) => !event.is_live);
     } else if (activeTab === 'Past') {
-      events = []; // No data for past events yet
+      filtered = []; // TODO: Implement logic for past events
     }
 
     // 2. Filter by search query
     if (search) {
-      return events.filter((event) => event.title.toLowerCase().includes(search.toLowerCase()));
+      return filtered.filter((event) => event.title.toLowerCase().includes(search.toLowerCase()));
     }
-    return events;
-  }, [activeTab, search]);
+    return filtered;
+  }, [allEvents, activeTab, search]);
 
   const renderEvent = ({ item }: { item: Event }) => (
     <TouchableOpacity
@@ -81,14 +84,18 @@ export default function EventsScreen() {
       // React Navigation will bubble this event up to the RootStack navigator.
       onPress={() => navigation.navigate('EventDetail', { event: item })}
     >
-      <Image source={{ uri: item.image }} style={styles.thumbnail} />
+      <Image
+        source={{ uri: item.image || 'https://placekitten.com/144/144' }}
+        style={styles.thumbnail}
+        onError={(e) => console.error('Error loading event image:', item.image, e.nativeEvent.error)}
+      />
       <View style={styles.cardContent}>
         <Text style={styles.date}>{formatEventDate(item.date)}</Text>
         <Text style={styles.title}>{item.title}</Text>
         {item.host && <Text style={styles.host}>Hosted by {item.host}</Text>}
         <View style={styles.metaRow}>
           <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
-          <Text style={styles.location}>{item.location}</Text>
+          <Text style={styles.location}>{item.location || 'No location'}</Text>
         </View>
         <Text style={styles.attendees}>{item.attendees} going</Text>
       </View>
@@ -153,6 +160,15 @@ export default function EventsScreen() {
           renderItem={renderEvent}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ paddingBottom: 120 }}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              {loading ? (
+                <ActivityIndicator size="large" color={COLORS.primary} />
+              ) : (
+                <Text style={styles.emptyState}>No events found.</Text>
+              )}
+            </View>
+          }
           keyboardShouldPersistTaps="handled"
         />
       </KeyboardAvoidingView>
@@ -277,5 +293,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: COLORS.overlay,
     zIndex: 0,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
+  },
+  emptyState: {
+    fontSize: SIZES.font,
+    color: COLORS.textMuted,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

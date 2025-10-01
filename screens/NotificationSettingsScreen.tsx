@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,40 +6,67 @@ import {
   TouchableOpacity,
   FlatList,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
-import { clubs } from '../data/mockData';
+import { Club } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { useUser } from '../context/UserContext';
+import { supabase } from '../lib/supabase';
 
 export default function NotificationSettingsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { joinedClubs: joinedClubIds } = useUser();
+  const { session, joinedClubs: joinedClubIds } = useUser();
 
-  // In a real app, these preferences would be fetched and saved.
-  // For now, we'll initialize all to 'on' and manage state locally.
-  const [notificationPrefs, setNotificationPrefs] = useState(() => {
-    const initialPrefs: { [key: string]: boolean } = {};
-    joinedClubIds.forEach(id => {
-      initialPrefs[id] = true;
-    });
-    return initialPrefs;
-  });
+  const [allClubs, setAllClubs] = useState<Club[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [mutedClubIds, setMutedClubIds] = useState<Set<string>>(new Set());
 
-  const togglePreference = (clubId: string) => {
-    setNotificationPrefs(prev => ({
-      ...prev,
-      [clubId]: !prev[clubId],
-    }));
+  useEffect(() => {
+    const fetchSettings = async () => {
+      setLoading(true);
+      if (!session?.user) return;
+
+      const [clubsRes, settingsRes] = await Promise.all([
+        supabase.from('clubs').select('*'),
+        supabase.from('user_notification_settings').select('club_id').eq('user_id', session.user.id),
+      ]);
+
+      if (clubsRes.data) setAllClubs(clubsRes.data as Club[]);
+      if (settingsRes.data) {
+        const mutedIds = new Set(settingsRes.data.map(s => String(s.club_id)));
+        setMutedClubIds(mutedIds);
+      }
+      setLoading(false);
+    };
+    fetchSettings();
+  }, [session?.user]);
+
+  const togglePreference = async (clubId: string) => {
+    if (!session?.user) return;
+
+    const isCurrentlyMuted = mutedClubIds.has(clubId);
+    const newMutedSet = new Set(mutedClubIds);
+
+    if (isCurrentlyMuted) {
+      // Unmute: delete the setting from the database
+      newMutedSet.delete(clubId);
+      await supabase.from('user_notification_settings').delete().match({ user_id: session.user.id, club_id: clubId });
+    } else {
+      // Mute: insert the setting into the database
+      newMutedSet.add(clubId);
+      await supabase.from('user_notification_settings').insert({ user_id: session.user.id, club_id: clubId });
+    }
+    setMutedClubIds(newMutedSet);
   };
 
   const joinedClubs = useMemo(
-    () => clubs.filter(club => joinedClubIds.includes(String(club.id))),
-    [joinedClubIds]
+    () => allClubs.filter(club => joinedClubIds.includes(String(club.id))),
+    [allClubs, joinedClubIds]
   );
 
   return (
@@ -60,9 +87,12 @@ export default function NotificationSettingsScreen() {
           <View style={styles.row}>
             <Text style={styles.rowLabel}>{item.name}</Text>
             <Switch
-              value={notificationPrefs[item.id]}
-              onValueChange={() => togglePreference(item.id)}
-              thumbColor={notificationPrefs[item.id] ? COLORS.primary : COLORS.border}
+              // The switch is "on" if the club is NOT in the muted list
+              value={!mutedClubIds.has(String(item.id))}
+              onValueChange={() => togglePreference(String(item.id))}
+              thumbColor={
+                !mutedClubIds.has(String(item.id)) ? COLORS.primary : COLORS.border
+              }
               trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
             />
           </View>
@@ -73,9 +103,15 @@ export default function NotificationSettingsScreen() {
           </Text>
         }
         ListEmptyComponent={
-          <Text style={styles.emptyState}>
-            You haven't joined any clubs yet. Join a club to manage its notifications.
-          </Text>
+          <View style={styles.emptyContainer}>
+            {loading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <Text style={styles.emptyState}>
+                You haven't joined any clubs yet. Join a club to manage its notifications.
+              </Text>
+            )}
+          </View>
         }
         contentContainerStyle={styles.listContent}
       />
@@ -131,5 +167,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 80,
     paddingHorizontal: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
   },
 });

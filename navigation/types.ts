@@ -1,53 +1,38 @@
 import { StackNavigationProp } from '@react-navigation/stack';
-import { Event, Club } from '../data/mockData';
-import { NavigatorScreenParams } from '@react-navigation/native';
+import { Club, Event, Post } from '../data/mockData';
 
-/**
- * The parameter list for the main Drawer navigator.
- */
-export type DrawerParamList = {
-  Main: undefined; // This corresponds to the TabNavigator
-  Clubs: undefined;
-  Settings: undefined;
+export type AuthStackParamList = {
+  SignIn: undefined;
+  SignUp: undefined;
 };
 
-/**
- * The root stack navigator that sits at the top of the app.
- * It contains the main drawer navigator and any global modal screens.
- */
-export type RootStackParamList = {
-  MainDrawer: NavigatorScreenParams<DrawerParamList>;
-  EventDetail: { event: Event };
-  ClubDetail: { club: Club };
-  MyClubs: undefined;
-  MySavedEvents: undefined;
-  EventList: { title: string; filter: 'live' | 'upcoming' | 'recommended' };
-  MyRsvpdEvents: undefined;
-  Notifications: undefined;
-  NotificationSettings: undefined;
-};
-
-export type RootStackNavigationProp = StackNavigationProp<RootStackParamList>;
-
-/**
- * The stack navigator for the "Events" tab.
- */
-export type EventsStackParamList = {
-  EventList: undefined; // The main list screen
-  EventDetail: { event: Event };
-};
-
-/**
- * The stack navigator for the "Explore" tab (HomeScreen).
- */
 export type ExploreStackParamList = {
   ExploreHome: undefined;
-  ClubDetail: { club: Club };
+  ClubDetail: { clubId: number };
 };
 
-/**
- * The stack navigator for the new "Feed" tab.
- */
 export type FeedStackParamList = {
   FeedList: undefined;
 };
+
+export type RootStackParamList = {
+  MainDrawer: undefined;
+  EventDetail: { event: Event };
+  ClubDetail: { clubId: number };
+  MyClubs: undefined;
+  MySavedEvents: undefined;
+  MyRsvpdEvents: undefined;
+  EventList: { title: string; filter: 'live' | 'upcoming' | 'recommended' };
+  Notifications: undefined;
+  NotificationSettings: undefined;
+  EditProfile: undefined;
+  ManageClub: { clubId: number; clubName: string };
+  CreateEditEvent: { clubId: number; clubName: string; event?: Event; onGoBack?: () => void };
+  CreateEditPost: { clubId: number; post?: { id: number; caption: string | null; image: string | null; }; onGoBack?: () => void; };
+  EditClub: { clubId: number; clubName: string };
+  InviteUsers: { eventId: number; eventName: string };
+  RsvpList: { eventId: number; eventName: string };
+  Comments: { postId: number };
+};
+
+export type RootStackNavigationProp = StackNavigationProp<RootStackParamList>;

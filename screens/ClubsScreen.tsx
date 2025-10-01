@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,29 +8,55 @@ import {
   FlatList,
   Image,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { useNavigation, DrawerActions, CompositeNavigationProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
-import { clubs, Club } from '../data/mockData'; // ✅ import shared mock data
+import { Club } from '../data/mockData'; // Keep the type, but we'll remove the data import
+import { RootStackParamList } from '../navigation/types';
+import { supabase } from '../lib/supabase';
 
 const clubCategories = ['All', 'Academic', 'Cultural', 'Service', 'Sports', 'Music', 'Arts'];
 
 export default function ClubsScreen() {
   const navigation = useNavigation<any>();
+  const [clubs, setClubs] = useState<Club[]>([]);
+  // Start in a loading state until the initial fetch is complete
+  const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredClubs = clubs.filter(
+  const fetchClubs = useCallback(async () => {
+    const { data, error } = await supabase.from('clubs').select('*');
+
+    if (error) {
+      console.error('Error fetching clubs:', error);
+    } else {
+      setClubs(data as Club[]);
+    }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
+    fetchClubs().finally(() => setLoading(false));
+  }, [fetchClubs]);
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchClubs().finally(() => setIsRefreshing(false));
+  }, []);
+
+  const filteredClubs = useMemo(() => clubs.filter(
     (club) =>
       (selectedCategory === 'All' || club.category === selectedCategory) &&
       club.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  ), [clubs, selectedCategory, searchQuery]);
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
           <Feather name="menu" size={24} color={COLORS.textSecondary} />
@@ -38,9 +64,9 @@ export default function ClubsScreen() {
         <Text style={styles.headerText}>Clubs</Text>
         <View style={{ width: 24 }} />
       </View>
-
+ 
       {/* Search Bar */}
-      <TextInput
+      <TextInput 
         style={styles.searchBar}
         placeholder="Search for clubs..."
         placeholderTextColor={COLORS.textMuted}
@@ -84,9 +110,14 @@ export default function ClubsScreen() {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.clubCard}
-            onPress={() => navigation.navigate('ClubDetail' as never, { club: item } as never)}
+            // Pass only the clubId as defined in the navigation types
+            onPress={() => navigation.navigate('ClubDetail', { clubId: item.id })}
           >
-            <Image source={{ uri: item.image }} style={styles.clubImage} />
+            <Image
+              source={{ uri: item.image || 'https://placekitten.com/400/240' }}
+              style={styles.clubImage}
+              onError={(e) => console.error('Error loading club image:', item.image, e.nativeEvent.error)}
+            />
             <View style={styles.clubInfo}>
               {item.category && (
                 <Text style={styles.clubCategory}>{item.category.toUpperCase()}</Text>
@@ -99,8 +130,16 @@ export default function ClubsScreen() {
           </TouchableOpacity>
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyState}>No clubs found in this category.</Text>
+          <View style={styles.emptyContainer}>
+            {loading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <Text style={styles.emptyState}>No clubs found in this category.</Text>
+            )}
+          </View>
         }
+        onRefresh={onRefresh}
+        refreshing={isRefreshing}
         contentContainerStyle={styles.clubList}
       />
     </SafeAreaView>
@@ -110,6 +149,7 @@ export default function ClubsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.background,
     paddingHorizontal: SIZES.padding,
   },
   header: {
@@ -168,6 +208,12 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     textAlign: 'center',
     marginTop: 80,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80, // Give it some space from the top filters
   },
   clubCard: {
     backgroundColor: COLORS.card,

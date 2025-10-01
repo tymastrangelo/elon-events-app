@@ -1,6 +1,6 @@
 // App.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Platform } from 'react-native';
+import { Platform, View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,9 +14,20 @@ import MySavedEventsScreen from './screens/MySavedEventsScreen';
 import MyRsvpdEventsScreen from './screens/MyRsvpdEventsScreen';
 import EventListScreen from './screens/EventListScreen';
 import NotificationsScreen from './screens/NotificationsScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
 import NotificationSettingsScreen from './screens/NotificationSettingsScreen';
-import { registerForPushNotificationsAsync } from './services/pushNotifications';
-import { UserProvider } from './context/UserContext';
+import ManageClubScreen from './screens/ManageClubScreen';
+import CreateEditEventScreen from './screens/CreateEditEventScreen';
+import CreateEditPostScreen from './screens/CreateEditPostScreen';
+import EditClubScreen from './screens/EditClubScreen';
+import RsvpListScreen from './screens/RsvpListScreen';
+import { registerForPushNotificationsAsync } from './services/pushNotifications'; // Assuming this file exists
+import { UserProvider, useUser } from './context/UserContext';
+import SignInScreen from './screens/SignInScreen';
+import SignUpScreen from './screens/SignUpScreen';
+import { COLORS } from './theme';
+import { AuthStackParamList } from './navigation/types';
+import InviteUsersScreen from './screens/InviteUsersScreen';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -27,7 +38,37 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const RootStack = createStackNavigator();
+const RootStack = createStackNavigator(); // This will now manage the entire app flow
+const AuthStack = createStackNavigator<AuthStackParamList>();
+
+function AppContent() {
+  const { session, loading } = useUser();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      {/* If a session exists, show the main app. Otherwise, show the Login screen. */}
+      {session && session.user ? <MainAppStack /> : <AuthNavigator />}
+    </NavigationContainer>
+  );
+}
+
+// This stack contains all screens accessible *before* logging in.
+function AuthNavigator() {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="SignIn" component={SignInScreen} />
+      <AuthStack.Screen name="SignUp" component={SignUpScreen} />
+    </AuthStack.Navigator>
+  );
+}
 
 export default function App() {
   const [expoPushToken, setExpoPushToken] = useState('');
@@ -55,52 +96,92 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <UserProvider>
-        <NavigationContainer>
-          <RootStack.Navigator>
-            <RootStack.Screen
-              name="MainDrawer"
-              component={DrawerNavigator}
-              options={{ headerShown: false }}
-            />
-            <RootStack.Screen name="EventDetail" component={EventDetailScreen} options={{ headerShown: false }} />
-            <RootStack.Screen
-              name="ClubDetail"
-              component={ClubDetailScreen}
-              options={{ headerShown: false }}
-            />
-            <RootStack.Screen
-              name="MyClubs"
-              component={MyClubsScreen}
-              options={{ headerShown: false }}
-            />
-            <RootStack.Screen
-              name="MySavedEvents"
-              component={MySavedEventsScreen}
-              options={{ headerShown: false }}
-            />
-            <RootStack.Screen
-              name="MyRsvpdEvents"
-              component={MyRsvpdEventsScreen}
-              options={{ headerShown: false }}
-            />
-            <RootStack.Screen
-              name="EventList"
-              component={EventListScreen}
-              options={{ headerShown: false }}
-            />
-            <RootStack.Screen
-              name="Notifications"
-              component={NotificationsScreen}
-              options={{ headerShown: false }}
-            />
-            <RootStack.Screen
-              name="NotificationSettings"
-              component={NotificationSettingsScreen}
-              options={{ headerShown: false }}
-            />
-          </RootStack.Navigator>
-        </NavigationContainer>
+        <AppContent />
       </UserProvider>
     </SafeAreaProvider>
+  );
+}
+
+// This stack contains all screens accessible *after* logging in.
+function MainAppStack() {
+  return (
+    <RootStack.Navigator>
+      <RootStack.Screen
+        name="MainDrawer"
+        component={DrawerNavigator}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen name="EventDetail" component={EventDetailScreen} options={{ headerShown: false }} />
+      <RootStack.Screen
+        name="ClubDetail"
+        component={ClubDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="MyClubs"
+        component={MyClubsScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="MySavedEvents"
+        component={MySavedEventsScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="MyRsvpdEvents"
+        component={MyRsvpdEventsScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="EventList"
+        component={EventListScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="Notifications"
+        component={NotificationsScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="ManageClub"
+        component={ManageClubScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="CreateEditEvent"
+        component={CreateEditEventScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="CreateEditPost"
+        component={CreateEditPostScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="EditClub"
+        component={EditClubScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="RsvpList"
+        component={RsvpListScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen
+        name="InviteUsers"
+        component={InviteUsersScreen}
+        options={{ headerShown: false }}
+      />
+    </RootStack.Navigator>
   );
 }

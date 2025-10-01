@@ -9,37 +9,44 @@ import {
 } from 'react-native';
 import { Modalize } from 'react-native-modalize';
 import { COLORS, SIZES } from '../theme';
-
-const categories = ['Sports', 'Music', 'Art', 'Food'];
-const timeFilters = ['Today', 'Tomorrow', 'This Week'];
+const timeFilters = ['All Time', 'Today', 'Tomorrow', 'This Week'];
 
 interface FiltersModalProps {
   visible: boolean;
   onClose: () => void;
-  onApply: (filters: any) => void;
+  onApply: (filters: { time: string | null }) => void;
+  activeFilters: { time: string | null };
 }
 
-export default function FiltersModal({ visible, onClose, onApply }: FiltersModalProps) {
+export default function FiltersModal({ visible, onClose, onApply, activeFilters }: FiltersModalProps) {
   const modalRef = useRef<Modalize>(null);
 
-  const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
-  const [selectedTime, setSelectedTime] = React.useState<string>('Tomorrow');
+  const [selectedTime, setSelectedTime] = React.useState<string | null>('All Time');
 
-  const toggleCategory = (cat: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    );
+  const toggleTime = (time: string) => {
+    setSelectedTime(time);
   };
 
+  const handleReset = () => {
+    setSelectedTime('All Time');
+    onApply({ time: 'All Time' });
+    modalRef.current?.close();
+  }
+
   const handleApply = () => {
-    onApply({ categories: selectedCategories, time: selectedTime });
+    onApply({ time: selectedTime });
     modalRef.current?.close(); // close modal on apply
   };
 
   useEffect(() => {
-    if (visible) modalRef.current?.open();
-    else modalRef.current?.close();
-  }, [visible]);
+    if (visible) {
+      // When modal opens, sync its internal state with the active filters from HomeScreen
+      setSelectedTime(activeFilters.time);
+      modalRef.current?.open();
+    } else {
+      modalRef.current?.close();
+    }
+  }, [visible, activeFilters]);
 
   return (
     <Modalize
@@ -52,35 +59,12 @@ export default function FiltersModal({ visible, onClose, onApply }: FiltersModal
       <View style={styles.content}>
         <Text style={styles.title}>Filter</Text>
 
-        <Text style={styles.sectionTitle}>Category</Text>
-        <View style={styles.row}>
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat}
-              onPress={() => toggleCategory(cat)}
-              style={[
-                styles.tag,
-                selectedCategories.includes(cat) && styles.tagSelected,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.tagText,
-                  selectedCategories.includes(cat) && styles.tagTextSelected,
-                ]}
-              >
-                {cat}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
         <Text style={styles.sectionTitle}>Time & Date</Text>
         <View style={styles.row}>
           {timeFilters.map((time) => (
             <TouchableOpacity
               key={time}
-              onPress={() => setSelectedTime(time)}
+              onPress={() => toggleTime(time)}
               style={[
                 styles.timeButton,
                 selectedTime === time && styles.timeButtonSelected,
@@ -99,7 +83,7 @@ export default function FiltersModal({ visible, onClose, onApply }: FiltersModal
         </View>
 
         <View style={styles.buttonRow}>
-          <TouchableOpacity onPress={onClose} style={styles.resetBtn}>
+          <TouchableOpacity onPress={handleReset} style={styles.resetBtn}>
             <Text style={styles.resetText}>RESET</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleApply} style={styles.applyBtn}>
