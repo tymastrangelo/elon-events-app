@@ -144,9 +144,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshAllData = async () => {
     try {
-      const [eventsRes, clubsRes] = await Promise.all([supabase.from('events').select('*'), supabase.from('clubs').select('*')]);
+      const [eventsRes, clubsRes] = await Promise.all([
+        supabase.from('events').select('*'),
+        // Fetch clubs and the count of their members in a single query
+        supabase.from('clubs').select('*, club_memberships(count)'),
+      ]);
       if (eventsRes.data) setAllEvents(eventsRes.data as Event[]);
-      if (clubsRes.data) setAllClubs(clubsRes.data as Club[]);
+      if (clubsRes.data) {
+        const clubsWithCount = clubsRes.data.map(club => ({
+          ...club,
+          member_count: club.club_memberships[0]?.count || 0,
+        }));
+        setAllClubs(clubsWithCount as Club[]);
+      }
 
     } catch (error) {
       console.error("Error fetching user session data:", error);

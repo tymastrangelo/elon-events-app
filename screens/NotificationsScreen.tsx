@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
+import { formatDistanceToNow } from 'date-fns';
 import { Event, Club } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { useUser } from '../context/UserContext';
@@ -89,7 +90,9 @@ export default function NotificationsScreen() {
       <Image source={{ uri: item.club?.image || 'https://placekitten.com/80/80' }} style={styles.avatar} />
       <View style={styles.notificationTextContainer}>
         <Text style={styles.notificationText}>{item.message}</Text>
-        <Text style={styles.timestamp}>{new Date(item.created_at).toLocaleDateString()}</Text>
+        <Text style={styles.timestamp}>
+          {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+        </Text>
       </View>
     </TouchableOpacity>
   );

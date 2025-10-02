@@ -52,4 +52,5 @@ export type Club = {
   joined?: boolean;
   meetingTimes?: string;
   contactEmail?: string;
+  member_count?: number; // Add this property
 };

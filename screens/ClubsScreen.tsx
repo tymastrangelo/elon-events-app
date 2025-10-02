@@ -19,42 +19,31 @@ import { Club } from '../data/mockData'; // Keep the type, but we'll remove the 
 import { RootStackParamList } from '../navigation/types';
 import { supabase } from '../lib/supabase';
 
+// Import useUser to access global state
+import { useUser } from '../context/UserContext';
+
 const clubCategories = ['All', 'Academic', 'Cultural', 'Service', 'Sports', 'Music', 'Arts'];
 
 export default function ClubsScreen() {
   const navigation = useNavigation<any>();
-  const [clubs, setClubs] = useState<Club[]>([]);
-  // Start in a loading state until the initial fetch is complete
-  const [loading, setLoading] = useState(true);
+  // Get clubs, loading state, and refresh function from the context
+  const { allClubs, loading, refreshAllData } = useUser();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const fetchClubs = useCallback(async () => {
-    const { data, error } = await supabase.from('clubs').select('*');
-
-    if (error) {
-      console.error('Error fetching clubs:', error);
-    } else {
-      setClubs(data as Club[]);
-    }
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    fetchClubs().finally(() => setLoading(false));
-  }, [fetchClubs]);
-
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await fetchClubs().finally(() => setIsRefreshing(false));
-  }, []);
+    // Use the global refresh function
+    await refreshAllData();
+    setIsRefreshing(false);
+  }, [refreshAllData]);
 
-  const filteredClubs = useMemo(() => clubs.filter(
+  const filteredClubs = useMemo(() => allClubs.filter(
     (club) =>
       (selectedCategory === 'All' || club.category === selectedCategory) &&
       club.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ), [clubs, selectedCategory, searchQuery]);
+  ), [allClubs, selectedCategory, searchQuery]);
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
@@ -124,7 +113,9 @@ export default function ClubsScreen() {
               )}
               <Text style={styles.clubName}>{item.name}</Text>
               <View style={styles.memberInfo}>
-                <Text style={styles.memberText}>12 Members</Text>
+                <Text style={styles.memberText}>
+                  {item.member_count} {item.member_count === 1 ? 'Member' : 'Members'}
+                </Text>
               </View>
             </View>
           </TouchableOpacity>
