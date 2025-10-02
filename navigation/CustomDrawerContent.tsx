@@ -87,6 +87,7 @@ const styles = StyleSheet.create({
   settingsLabel: {
     color: COLORS.textSecondary,
     fontWeight: '500',
+    marginLeft: -20,
   },
 });
 

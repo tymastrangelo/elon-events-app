@@ -7,7 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { RootStackNavigationProp } from '../navigation/types';
 import { formatDistanceToNow } from 'date-fns';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming, withSpring } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 
@@ -59,6 +59,28 @@ export default function PostCard({ post }: PostCardProps) {
       // Revert optimistic update on failure
       setIsLiked(currentlyLiked);
       setLikeCount(likeCount);
+    }
+  };
+
+  const handleDoubleTapLike = async () => {
+    // Only "like" the post, don't toggle. If already liked, do nothing.
+    if (isLiked || !session?.user) return;
+
+    // Optimistic UI update
+    setIsLiked(true);
+    setLikeCount(likeCount + 1);
+
+    try {
+      // Like the post
+      const { error } = await supabase.from('post_likes').insert({ post_id: post.id, user_id: session.user.id });
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error liking post via double-tap:', error);
+      // Revert optimistic update on failure
+      setIsLiked(false);
+      setLikeCount(likeCount);
+      // Optionally, show an alert to the user
+      Alert.alert('Error', 'Could not like the post. Please try again.');
     }
   };
 
@@ -119,8 +141,10 @@ export default function PostCard({ post }: PostCardProps) {
   const doubleTap = Gesture.Tap()
     .numberOfTaps(2)
     .onStart(() => {
-      handleLike();
-      scale.value = withSequence(withSpring(1), withTiming(0, { duration: 800 }));
+      if (!isLiked) {
+        runOnJS(handleDoubleTapLike)();
+        scale.value = withSequence(withSpring(1), withTiming(0, { duration: 800 }));
+      }
     });
 
   const animatedHeartStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));

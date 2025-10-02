@@ -29,13 +29,13 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-dev-client"
     ],
     "extra": {
       "eas": {
         "projectId": "06c1f0f7-4004-4e4f-8b8d-682cfcb944a0"
       }
     }
-  },
-  "name": "elon-events-app"
+  }
 }

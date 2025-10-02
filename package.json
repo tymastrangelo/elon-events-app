@@ -21,6 +21,8 @@
     "date-fns": "^3.6.0",
     "expo": "~51.0.14",
     "expo-calendar": "~13.0.5",
+    "expo-constants": "~16.0.2",
+    "expo-dev-client": "~4.0.29",
     "expo-device": "~6.0.2",
     "expo-image-picker": "~15.0.5",
     "expo-notifications": "~0.28.9",

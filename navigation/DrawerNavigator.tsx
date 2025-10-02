@@ -31,6 +31,7 @@ export default function DrawerNavigator() {
         drawerInactiveTintColor: COLORS.textSecondary,
         drawerLabelStyle: {
           fontWeight: '500',
+          marginLeft: -20, // This will pull the label closer to the icon
         },
       }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
