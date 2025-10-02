@@ -61,6 +61,14 @@ export default function SignInScreen() {
           )}
         </TouchableOpacity>
       </View>
+      <View style={styles.verticallySpaced}>
+        <TouchableOpacity
+          style={[styles.button, styles.ssoButton]}
+          onPress={() => Alert.alert('Coming Soon!', 'Single Sign-On with your school will be available soon.')}
+        >
+          <Text style={[styles.buttonText, styles.ssoButtonText]}>Sign in with School</Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('SignUp')}>
         <Text style={styles.footerText}>Don't have an account? <Text style={styles.linkText}>Sign Up</Text></Text>
       </TouchableOpacity>
@@ -109,6 +117,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 50,
     justifyContent: 'center',
+  },
+  ssoButton: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  ssoButtonText: {
+    color: COLORS.textPrimary,
   },
   buttonText: {
     color: COLORS.white,

@@ -11,17 +11,23 @@ export default function SignUpScreen() {
   const navigation = useNavigation<StackNavigationProp<AuthStackParamList>>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function signUpWithEmail() {
-    if (!fullName.trim()) {
-      Alert.alert('Validation Error', 'Please enter your full name.');
+    if (!firstName.trim() || !lastName.trim()) {
+      Alert.alert('Validation Error', 'Please enter your first and last name.');
       return;
     }
     // Validate that the email is an Elon email address
     if (!email.toLowerCase().endsWith('@elon.edu')) {
       Alert.alert('Invalid Email', 'Please use your Elon University email address to sign up.');
+      return;
+    }
+    // Basic password validation
+    if (password.length < 6) {
+      Alert.alert('Password Too Short', 'Please enter a password that is at least 6 characters long.');
       return;
     }
     setLoading(true);
@@ -30,7 +36,9 @@ export default function SignUpScreen() {
       password: password,
       options: {
         data: {
-          full_name: fullName.trim(),
+          full_name: `${firstName.trim()} ${lastName.trim()}`,
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
         },
       },
     });
@@ -38,7 +46,9 @@ export default function SignUpScreen() {
     if (error) {
       Alert.alert('Sign Up Error', error.message);
     } else {
-      Alert.alert('Success!', 'Please check your email for a confirmation link to complete your registration.');
+      Alert.alert('Success!', 'Please check your email for a confirmation link to complete your registration.',
+        [{ text: 'OK', onPress: () => navigation.navigate('SignIn') }]
+      );
       navigation.navigate('SignIn'); // Navigate back to sign in after successful prompt
     }
     setLoading(false);
@@ -48,13 +58,23 @@ export default function SignUpScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Create Account</Text>
-        <Text style={styles.headerSubtitle}>Join the Elon community</Text>
+        <Text style={styles.headerSubtitle}>Join your school's community!</Text>
       </View>
       <View style={styles.verticallySpaced}>
         <TextInput
-          onChangeText={setFullName}
-          value={fullName}
-          placeholder="Full Name"
+          onChangeText={setFirstName}
+          value={firstName}
+          placeholder="First Name"
+          autoCapitalize="words"
+          style={styles.input}
+          placeholderTextColor={COLORS.textMuted}
+        />
+      </View>
+      <View style={styles.verticallySpaced}>
+        <TextInput
+          onChangeText={setLastName}
+          value={lastName}
+          placeholder="Last Name"
           autoCapitalize="words"
           style={styles.input}
           placeholderTextColor={COLORS.textMuted}

@@ -60,16 +60,6 @@ function AppContent() {
   );
 }
 
-// This stack contains all screens accessible *before* logging in.
-function AuthNavigator() {
-  return (
-    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
-      <AuthStack.Screen name="SignIn" component={SignInScreen} />
-      <AuthStack.Screen name="SignUp" component={SignUpScreen} />
-    </AuthStack.Navigator>
-  );
-}
-
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -77,6 +67,16 @@ export default function App() {
         <AppContent />
       </UserProvider>
     </SafeAreaProvider>
+  );
+}
+
+// This stack contains all screens accessible *before* logging in.
+function AuthNavigator() {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="SignIn" component={SignInScreen} />
+      <AuthStack.Screen name="SignUp" component={SignUpScreen} />
+    </AuthStack.Navigator>
   );
 }
 
