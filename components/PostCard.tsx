@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Share, Alert, ActionSheetIOS } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { Post } from '../data/mockData';
@@ -6,8 +6,8 @@ import { COLORS, SIZES } from '../theme'; // Assuming you have a theme file
 import { useNavigation } from '@react-navigation/native';
 import type { RootStackNavigationProp } from '../navigation/types';
 import { formatDistanceToNow } from 'date-fns';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming, withSpring, runOnJS } from 'react-native-reanimated';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming, withSpring, runOnJS, cancelAnimation } from 'react-native-reanimated';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 
@@ -33,6 +33,13 @@ export default function PostCard({ post }: PostCardProps) {
 
   // For double-tap animation
   const scale = useSharedValue(0);
+
+  // Clean up animation on unmount
+  useEffect(() => {
+    return () => {
+      cancelAnimation(scale);
+    };
+  }, [scale]);
 
   const handleLike = async () => {
     if (!session?.user) return;
