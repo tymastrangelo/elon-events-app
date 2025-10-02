@@ -34,44 +34,46 @@ interface NotificationItem {
 
 export default function NotificationsScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-  const { session, allEvents, allClubs } = useUser();
+  const { session, allEvents, allClubs, notificationsVersion } = useUser();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!session?.user) {
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('recipient_user_id', session.user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error("Error fetching notifications", error);
-        setLoading(false);
-        return;
-      }
-
-      // Enrich notifications with event and club details from context
-      const formattedNotifications = data.map(notif => {
-        const event = notif.event_id ? allEvents.find(e => e.id === notif.event_id) : undefined;
-        const club = notif.club_id ? allClubs.find(c => c.id === notif.club_id) : undefined;
-        return { ...notif, event, club };
-      });
-
-      setNotifications(formattedNotifications);
+  const fetchNotifications = async () => {
+    if (!session?.user) {
       setLoading(false);
-    };
+      return;
+    }
+    setLoading(true);
 
-    fetchNotifications();
-  }, [session, allEvents, allClubs]);
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('recipient_user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error("Error fetching notifications", error);
+      setLoading(false);
+      return;
+    }
+
+    // Enrich notifications with event and club details from context
+    const formattedNotifications = data.map(notif => {
+      const event = notif.event_id ? allEvents.find(e => e.id === notif.event_id) : undefined;
+      const club = notif.club_id ? allClubs.find(c => c.id === notif.club_id) : undefined;
+      return { ...notif, event, club };
+    });
+
+    setNotifications(formattedNotifications);
+    setLoading(false);
+  };
+
+  // Fetch notifications whenever the version changes (or on initial load)
+  useEffect(
+    () => { fetchNotifications(); },
+    [session, allEvents, allClubs, notificationsVersion]
+  );
 
   const renderNotification = ({ item }: { item: NotificationItem }) => (
     <TouchableOpacity

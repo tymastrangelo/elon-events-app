@@ -21,7 +21,6 @@ import CreateEditEventScreen from './screens/CreateEditEventScreen';
 import CreateEditPostScreen from './screens/CreateEditPostScreen';
 import EditClubScreen from './screens/EditClubScreen';
 import RsvpListScreen from './screens/RsvpListScreen';
-import { registerForPushNotificationsAsync } from './services/pushNotifications'; // Assuming this file exists
 import { UserProvider, useUser } from './context/UserContext';
 import SignInScreen from './screens/SignInScreen';
 import SignUpScreen from './screens/SignUpScreen';
@@ -29,10 +28,11 @@ import { COLORS } from './theme';
 import { AuthStackParamList } from './navigation/types';
 import InviteUsersScreen from './screens/InviteUsersScreen';
 
+// Set the notification handler at the root of the app
+// This ensures that the app knows how to display notifications when it's in the foreground.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
+    shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -71,28 +71,6 @@ function AuthNavigator() {
 }
 
 export default function App() {
-  const [expoPushToken, setExpoPushToken] = useState('');
-  const [notification, setNotification] = useState<Notifications.Notification | false>(false);
-  const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
-  const responseListener = useRef<Notifications.EventSubscription | undefined>(undefined);
-
-  useEffect(() => {
-    registerForPushNotificationsAsync().then(token => setExpoPushToken(token || ''));
-
-    notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
-      setNotification(notification);
-    });
-
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
-    });
-
-    return () => {
-      notificationListener.current?.remove();
-      responseListener.current?.remove();
-    };
-  }, []);
-
   return (
     <SafeAreaProvider>
       <UserProvider>

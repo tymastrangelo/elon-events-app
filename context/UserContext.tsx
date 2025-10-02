@@ -1,7 +1,10 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useRef } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { Alert } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Event, Club } from '../data/mockData';
 
 interface UserContextType {
@@ -18,6 +21,8 @@ interface UserContextType {
   // App-wide data
   allEvents: Event[];
   allClubs: Club[];
+  // Data versioning for triggering refreshes
+  notificationsVersion: number;
 
   // Actions
   toggleSavedEvent: (eventId: string) => Promise<void>;
@@ -43,6 +48,48 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   // App-wide data state
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [allClubs, setAllClubs] = useState<Club[]>([]);
+  // A simple counter to trigger re-fetches in specific screens
+  const [notificationsVersion, setNotificationsVersion] = useState(0);
+
+
+  // --- Push Notification Setup ---
+  const registerForPushNotificationsAsync = async (userId: string) => {
+    if (!Device.isDevice) {
+      console.log('Push notifications are only available on physical devices.');
+      return;
+    }
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      // Optional: Inform the user that they will not receive notifications.
+      console.log('Failed to get push token for push notification!');
+      return;
+    }
+
+    // Get the Expo push token
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    if (!projectId) {
+      Alert.alert('Error', 'Missing projectId. Cannot get push token.');
+      return;
+    }
+    const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+    console.log('Expo Push Token:', token);
+
+    // Save the token to the user's profile in Supabase
+    const { error } = await supabase.from('profiles').update({ push_token: token }).eq('id', userId);
+
+    if (error) {
+      console.error('Error saving push token:', error);
+      Alert.alert('Error', 'Could not save push token.');
+    }
+  };
 
   const fetchAllUserData = async (currentSession: Session | null) => {
     console.log("fetchAllUserData called. Current session:", currentSession?.user?.id);
@@ -60,6 +107,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const userId = currentSession.user.id;
+      // Register for push notifications
+      registerForPushNotificationsAsync(userId);
+
       const [adminRes, savedEventsRes, rsvpsRes, clubsRes] = await Promise.all([
         supabase.from('club_admins').select('club_id').eq('user_id', userId),
         supabase.from('saved_events').select('event_id').eq('user_id', userId),
@@ -115,6 +165,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Listen for incoming notifications to refresh the notifications screen
+  useEffect(() => {
+    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+      console.log('Notification received, refreshing data...');
+      // Increment the version to signal to the NotificationsScreen that it needs to refetch.
+      setNotificationsVersion(v => v + 1);
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(notificationListener);
+    };
+  }, [refreshAllData]); // Add refreshAllData to dependency array
 
   const toggleSavedEvent = async (eventId: string) => {
     const isSaved = savedEvents.includes(String(eventId));
@@ -200,7 +263,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   return (
     <UserContext.Provider
       value={{
-        session, loading, isAdmin, managedClubIds, allEvents, allClubs,
+        session, loading, isAdmin, managedClubIds, allEvents, allClubs, notificationsVersion,
         savedEvents, joinedClubs, rsvpdEvents,
         toggleSavedEvent, toggleJoinedClub, toggleRsvp, refreshAllData
       }}
