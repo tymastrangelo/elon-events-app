@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Share, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Share, Alert, ActionSheetIOS } from 'react-native';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { Post } from '../data/mockData';
 import { COLORS, SIZES } from '../theme'; // Assuming you have a theme file
 import { useNavigation } from '@react-navigation/native';
 import type { RootStackNavigationProp } from '../navigation/types';
 import { formatDistanceToNow } from 'date-fns';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle, withSequence, withTiming, withSpring } from 'react-native-reanimated';
 import { supabase } from '../lib/supabase';
 import { useUser } from '../context/UserContext';
 
@@ -28,6 +30,9 @@ export default function PostCard({ post }: PostCardProps) {
   // Local state for optimistic updates
   const [isLiked, setIsLiked] = useState(post.is_liked);
   const [likeCount, setLikeCount] = useState(post.likes);
+
+  // For double-tap animation
+  const scale = useSharedValue(0);
 
   const handleLike = async () => {
     if (!session?.user) return;
@@ -79,6 +84,47 @@ export default function PostCard({ post }: PostCardProps) {
     }
   };
 
+  const handleMoreOptions = () => {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: ['Cancel', 'Report Post'],
+        destructiveButtonIndex: 1,
+        cancelButtonIndex: 0,
+        userInterfaceStyle: 'light',
+      },
+      async (buttonIndex) => {
+        if (buttonIndex === 1) {
+          // Report Post
+          if (!session?.user.id) {
+            Alert.alert('Error', 'You must be logged in to report a post.');
+            return;
+          }
+          const { error } = await supabase.from('reports').insert({
+            post_id: post.id,
+            reporter_id: session.user.id,
+            reason: 'User reported this post.',
+          });
+
+          if (error) {
+            Alert.alert('Error', 'Could not submit report. Please try again.');
+            console.error('Error reporting post:', error);
+          } else {
+            Alert.alert('Report Submitted', 'Thank you for your feedback. We will review this post.');
+          }
+        }
+      }
+    );
+  };
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .onStart(() => {
+      handleLike();
+      scale.value = withSequence(withSpring(1), withTiming(0, { duration: 800 }));
+    });
+
+  const animatedHeartStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   return (
     <View style={styles.card}>
       {/* Card Header */}
@@ -92,7 +138,7 @@ export default function PostCard({ post }: PostCardProps) {
             </Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleMoreOptions}>
           <Feather name="more-horizontal" size={20} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
@@ -101,7 +147,16 @@ export default function PostCard({ post }: PostCardProps) {
       <Text style={styles.caption}>{post.caption}</Text>
 
       {/* Image */}
-      {post.image && <Image source={{ uri: post.image }} style={styles.postImage} />}
+      {post.image && (
+        <GestureDetector gesture={doubleTap}>
+          <View>
+            <Image source={{ uri: post.image }} style={styles.postImage} />
+            <Animated.View style={[styles.animatedHeart, animatedHeartStyle]}>
+              <Ionicons name="heart" size={80} color={COLORS.white} />
+            </Animated.View>
+          </View>
+        </GestureDetector>
+      )}
 
       {/* Event Snippet */}
       {post.type === 'event' && post.eventDetails?.date && (
@@ -125,7 +180,7 @@ export default function PostCard({ post }: PostCardProps) {
           <Text style={styles.actionText}>{likeCount}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-          <Ionicons name="share-social-outline" size={24} color={COLORS.textSecondary} />
+          <Ionicons name="paper-plane-outline" size={24} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
     </View>
@@ -159,6 +214,15 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: SIZES.radius,
     marginTop: SIZES.base,
+  },
+  animatedHeart: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   eventSnippet: {
     marginTop: SIZES.base,
