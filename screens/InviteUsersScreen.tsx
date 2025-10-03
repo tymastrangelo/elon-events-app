@@ -157,7 +157,7 @@ export default function InviteUsersScreen() {
               onPress={() => toggleUserSelection(item.user_id)}
             >
               <Image
-                source={{ uri: item.avatar_url || 'https://placekitten.com/100/100' }}
+                source={{ uri: item.avatar_url || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
                 style={styles.userAvatar}
               />
               <Text style={styles.userName}>{item.full_name || 'Unnamed User'}</Text>

@@ -150,7 +150,7 @@ export default function EditProfileScreen() {
       <View style={styles.content}>
         <TouchableOpacity onPress={pickImage} disabled={uploading}>
           <Image
-            source={{ uri: avatarUrl || 'https://placekitten.com/200/200' }}
+            source={{ uri: avatarUrl || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
             style={styles.avatar}
           />
           {uploading && (

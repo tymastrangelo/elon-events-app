@@ -103,7 +103,7 @@ export default function ClubsScreen() {
             onPress={() => navigation.navigate('ClubDetail', { clubId: item.id })}
           >
             <Image
-              source={{ uri: item.image || 'https://placekitten.com/400/240' }}
+              source={{ uri: item.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
               style={styles.clubImage}
               onError={(e) => console.error('Error loading club image:', item.image, e.nativeEvent.error)}
             />

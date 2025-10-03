@@ -87,7 +87,7 @@ export default function NotificationsScreen() {
       }}
       disabled={!item.event} // Disable press if there's no event to navigate to
     >
-      <Image source={{ uri: item.club?.image || 'https://placekitten.com/80/80' }} style={styles.avatar} />
+      <Image source={{ uri: item.club?.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.avatar} />
       <View style={styles.notificationTextContainer}>
         <Text style={styles.notificationText}>{item.message}</Text>
         <Text style={styles.timestamp}>

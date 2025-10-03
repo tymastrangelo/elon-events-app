@@ -87,7 +87,7 @@ export default function EventListScreen() {
       style={styles.eventCard}
       onPress={() => navigation.navigate('EventDetail', { event: item })}
     >
-      <Image source={{ uri: item.image || 'https://placekitten.com/144/144' }} style={styles.thumbnail} />
+      <Image source={{ uri: item.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.thumbnail} />
       <View style={styles.cardContent}>
         <Text style={styles.date}>{formatEventDate(item.date)}</Text>
         <Text style={styles.title}>{item.title}</Text>

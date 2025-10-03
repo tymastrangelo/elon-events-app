@@ -77,7 +77,7 @@ export default function RsvpListScreen() {
           renderItem={({ item }) => (
             <View style={styles.attendeeCard}>
               <Image
-                source={{ uri: item.avatar_url || 'https://placekitten.com/100/100' }}
+                source={{ uri: item.avatar_url || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
                 style={styles.attendeeAvatar}
               />
               <Text style={styles.attendeeName}>{item.full_name || 'Unnamed User'}</Text>

@@ -128,7 +128,7 @@ export default function ClubDetailScreen() {
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Image source={{ uri: club.image || 'https://placekitten.com/400/240' }} style={styles.image} />
+        <Image source={{ uri: club.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.image} />
         <View style={styles.content}>
           <Text style={styles.title}>{club.name}</Text>
           <Text style={styles.category}>{club.category} Club</Text>
@@ -174,7 +174,7 @@ export default function ClubDetailScreen() {
                 style={styles.eventCard}
                 onPress={() => navigation.navigate('EventDetail', { event })}
               >
-                <Image source={{ uri: event.image || 'https://placekitten.com/144/144' }} style={styles.eventThumbnail} />
+                <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.eventThumbnail} />
                 <View style={styles.eventCardContent}>
                   <Text style={styles.eventDate}>{formatEventDate(event.date)}</Text>
                   <Text style={styles.eventTitle}>{event.title}</Text>

@@ -76,7 +76,7 @@ export default function ProfileScreen() {
         <View style={styles.profileHeader}>
           <Image
             // Use the avatar_url from user metadata, with a fallback
-            source={{ uri: session?.user?.user_metadata?.avatar_url || 'https://placekitten.com/200/200' }}
+            source={{ uri: session?.user?.user_metadata?.avatar_url || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
             style={styles.avatar}
           />
           <Text style={styles.name}>{name}</Text> 

@@ -323,7 +323,7 @@ export default function ManageClubScreen() {
                 }
                 renderItem={({ item }, rowMap) => (
                 <View style={styles.itemCard}>
-                  <Image source={{ uri: item.avatar_url || 'https://placekitten.com/100/100' }} style={styles.memberAvatar} />
+                  <Image source={{ uri: item.avatar_url || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.memberAvatar} />
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={styles.itemTitle} numberOfLines={1}>{item.full_name || 'Unnamed User'}</Text>

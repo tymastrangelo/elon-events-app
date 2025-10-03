@@ -158,7 +158,7 @@ const EventList = ({ events, navigation, modalRef, emptyMessage, loading }: any)
               modalRef.current?.close();
             }}
           >
-            <Image source={{ uri: event.image || 'https://placekitten.com/120/120' }} style={styles.thumbnail} />
+            <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.thumbnail} />
             <View style={{ flex: 1 }}>
               <Text style={styles.eventTitle}>{event.title}</Text>
               <Text style={styles.eventLocation}>{event.location || 'No location specified'}</Text>

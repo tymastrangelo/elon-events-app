@@ -59,7 +59,7 @@ export default function MyClubsScreen() {
             style={styles.clubCard}
             onPress={() => navigation.navigate('ClubDetail', { clubId: item.id })}
           >
-            <Image source={{ uri: item.image || 'https://placekitten.com/120/120' }} style={styles.clubImage} />
+            <Image source={{ uri: item.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.clubImage} />
             <View style={styles.clubInfo}>
               <Text style={styles.clubName}>{item.name}</Text>
               <Text style={styles.clubDescription} numberOfLines={2}>

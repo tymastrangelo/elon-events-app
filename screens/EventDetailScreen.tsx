@@ -253,7 +253,7 @@ export default function EventDetailScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Event Image */}
-        <Image source={{ uri: event.image || 'https://placekitten.com/400/240' }} style={styles.image} />
+        <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.image} />
 
         {/* Floating Attendee Card */}
         {event.rsvps_enabled && attendees.length > 0 && (
@@ -262,7 +262,7 @@ export default function EventDetailScreen() {
               {attendees.slice(0, 3).map((attendee, index) => (
                 <Image
                   key={index}
-                  source={{ uri: attendee.avatar_url || 'https://placekitten.com/100/100' }}
+                  source={{ uri: attendee.avatar_url || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
                   style={[styles.avatar, { zIndex: 3 - index }]}
                 />
               ))}

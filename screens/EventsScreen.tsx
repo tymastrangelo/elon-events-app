@@ -85,7 +85,7 @@ export default function EventsScreen() {
       onPress={() => navigation.navigate('EventDetail', { event: item })}
     >
       <Image
-        source={{ uri: item.image || 'https://placekitten.com/144/144' }}
+        source={{ uri: item.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }}
         style={styles.thumbnail}
         onError={(e) => console.error('Error loading event image:', item.image, e.nativeEvent.error)}
       />

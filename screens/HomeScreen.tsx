@@ -178,7 +178,7 @@ export default function HomeScreen() {
               style={styles.eventCard}
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
-              <Image source={{ uri: event.image || 'https://placekitten.com/280/180' }} style={styles.eventImage} />
+              <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.eventImage} />
               <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
@@ -218,7 +218,7 @@ export default function HomeScreen() {
               style={styles.eventCard}
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
-              <Image source={{ uri: event.image || 'https://placekitten.com/280/180' }} style={styles.eventImage} />
+              <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.eventImage} />
               <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
@@ -253,7 +253,7 @@ export default function HomeScreen() {
               style={styles.eventCard}
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
-              <Image source={{ uri: event.image || 'https://placekitten.com/280/180' }} style={styles.eventImage} />
+              <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.eventImage} />
               <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
@@ -282,7 +282,7 @@ export default function HomeScreen() {
               style={styles.eventCard}
               onPress={() => navigation.navigate('EventDetail', { event })}
             >
-              <Image source={{ uri: event.image || 'https://placekitten.com/280/180' }} style={styles.eventImage} />
+              <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.eventImage} />
               <View style={styles.eventCardOverlay} />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventTitle} numberOfLines={2}>{event.title}</Text>
@@ -319,7 +319,7 @@ export default function HomeScreen() {
                 style={styles.clubCard}
                 onPress={() => navigation.navigate('ClubDetail', { clubId: club.id })}
               >
-                <Image source={{ uri: club.image || 'https://placekitten.com/100/100' }} style={styles.clubImage} />
+                <Image source={{ uri: club.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.clubImage} />
                 <View style={styles.clubInfo}>
                   <Text style={styles.clubName}>{club.name}</Text>
                   <Text style={styles.clubDesc} numberOfLines={2}>{club.description}</Text>
