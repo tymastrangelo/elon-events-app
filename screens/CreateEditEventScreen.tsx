@@ -12,6 +12,7 @@ import {
   Image,
   Switch,
   Modal,
+  TouchableWithoutFeedback,
   FlatList,
   KeyboardAvoidingView,
 } from 'react-native';
@@ -63,10 +64,11 @@ export default function CreateEditEventScreen() {
   const [roomSearch, setRoomSearch] = useState('');
 
   const onDateChange = (e: DateTimePickerEvent, selectedDate?: Date) => {
+    // This function now only updates the state. Closing is handled by the modal buttons.
     const currentDate = selectedDate || (pickerMode === 'start' ? date : endDate);
-    setPickerMode(null); // Close picker after selection
     if (pickerMode === 'start') setDate(currentDate);
     if (pickerMode === 'end') setEndDate(currentDate);
+    if (Platform.OS === 'android') setPickerMode(null); // Android closes itself after selection
   };
 
   useEffect(() => {
@@ -214,7 +216,7 @@ export default function CreateEditEventScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView style={styles.form} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.form} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <TouchableOpacity onPress={pickImage} style={styles.imagePicker}>
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.imagePreview} />
@@ -264,15 +266,6 @@ export default function CreateEditEventScreen() {
             </TouchableOpacity>
           </View>
         </View>
-
-        {pickerMode && (
-          <DateTimePicker
-            value={pickerMode === 'start' ? date : endDate}
-            mode="datetime"
-            display="default"
-            onChange={onDateChange}
-          />
-        )}
 
         <Text style={styles.label}>Recurrence</Text>
         <View style={styles.switchRow}>
@@ -357,6 +350,34 @@ export default function CreateEditEventScreen() {
           </TouchableOpacity>
         )}
       </ScrollView>
+
+      {/* Date/Time Picker Modal */}
+      {pickerMode && Platform.OS === 'ios' && (
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={pickerMode !== null}
+          onRequestClose={() => setPickerMode(null)}
+        >
+          <TouchableWithoutFeedback onPress={() => setPickerMode(null)}>
+            <View style={styles.modalOverlay}>
+              <TouchableWithoutFeedback>
+                <View style={styles.dateTimePickerContainer}>
+                  <DateTimePicker
+                    value={pickerMode === 'start' ? date : endDate}
+                    mode="datetime"
+                    display="spinner" // A much cleaner UI for the modal
+                    onChange={onDateChange}
+                  />
+                  <TouchableOpacity style={styles.doneButton} onPress={() => setPickerMode(null)}>
+                    <Text style={styles.doneButtonText}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+      )}
 
       {/* Location Selection Modal */}
       <Modal
@@ -628,4 +649,34 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   modalItemText: { fontSize: 16 },
+  // Styles for the new DateTimePicker modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateTimePickerContainer: {
+    backgroundColor: COLORS.card,
+    borderRadius: SIZES.radius * 1.5,
+    padding: SIZES.padding,
+    width: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  doneButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.radius,
+    padding: 14,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
