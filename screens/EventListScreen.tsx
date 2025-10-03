@@ -29,7 +29,7 @@ const formatEventDate = (dateString: string): string => {
 export default function EventListScreen() {
   const navigation = useNavigation<RootStackNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'EventList'>>();
-  const { title: headerTitle, filter } = route.params;
+  const { title: headerTitle, filter, clubName } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [allEvents, setAllEvents] = useState<Event[]>([]);
   const [allClubs, setAllClubs] = useState<any[]>([]);
@@ -72,6 +72,9 @@ export default function EventListScreen() {
           .filter(club => joinedClubs.includes(String(club.id)))
           .map(club => club.name);
         baseEvents = allEvents.filter(event => event.host && joinedClubNames.includes(event.host));
+        break;
+      case 'club':
+        baseEvents = allEvents.filter(event => event.host === clubName);
         break;
       default:
         baseEvents = [];

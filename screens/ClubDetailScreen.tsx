@@ -17,6 +17,7 @@ import { Linking, Platform } from 'react-native';
 import { Club, Event } from '../data/mockData';
 import { RootStackParamList } from '../navigation/types';
 import { COLORS, SIZES } from '../theme';
+import { addDays, addMonths } from 'date-fns';
 import { useUser } from '../context/UserContext';
 import { supabase } from '../lib/supabase';
 
@@ -26,6 +27,38 @@ const formatEventDate = (dateString: string): string => {
     month: 'short',
     day: 'numeric',
   }) + ', ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+};
+
+// This function calculates the next upcoming date for a recurring event.
+const getNextOccurrence = (event: Event): Date => {
+  const originalStartDate = new Date(event.date);
+  const now = new Date();
+
+  // If it's not a recurring event or if the original date is still in the future, return the original date.
+  if (!event.is_recurring || originalStartDate > now) {
+    return originalStartDate;
+  }
+
+  // If the event is recurring and in the past, calculate the next occurrence.
+  let nextStartDate = new Date(originalStartDate.getTime());
+  const duration = event.end_date ? new Date(event.end_date).getTime() - originalStartDate.getTime() : 2 * 60 * 60 * 1000; // Default 2hr duration
+
+  while (new Date(nextStartDate.getTime() + duration) <= now) {
+    switch (event.recurrence_pattern) {
+      case 'weekly':
+        nextStartDate = addDays(nextStartDate, 7);
+        break;
+      case 'bi-weekly':
+        nextStartDate = addDays(nextStartDate, 14);
+        break;
+      case 'monthly':
+        nextStartDate = addMonths(nextStartDate, 1);
+        break;
+      default:
+        return originalStartDate; // If pattern is unknown, return original to avoid infinite loop.
+    }
+  }
+  return nextStartDate;
 };
 
 export default function ClubDetailScreen() {
@@ -79,7 +112,13 @@ export default function ClubDetailScreen() {
       if (eventsError) {
         console.error('Error fetching hosted events:', eventsError);
       } else {
-        setHostedEvents(eventsData as Event[]);
+        // Sort events by their next upcoming occurrence
+        const sortedEvents = (eventsData as Event[])
+          .map(event => ({ ...event, nextOccurrence: getNextOccurrence(event) }))
+          .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime());
+        
+        // @ts-ignore - We've added a temporary 'nextOccurrence' property for sorting
+        setHostedEvents(sortedEvents);
       }
       setLoadingEvents(false);
       setLoading(false);
@@ -164,11 +203,20 @@ export default function ClubDetailScreen() {
           <Text style={styles.description}>{club.description}</Text>
 
           {/* Hosted Events */}
-          <Text style={[styles.sectionTitle, { marginTop: SIZES.padding * 1.5 }]}>Hosted Events</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Hosted Events</Text>
+            {hostedEvents.length > 3 && (
+              <TouchableOpacity
+                onPress={() => navigation.navigate('EventList', { title: `${club.name} Events`, filter: 'club', clubName: club.name })}
+              >
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           {loadingEvents ? (
             <ActivityIndicator style={{ marginTop: 20 }} color={COLORS.primary} />
           ) : hostedEvents.length > 0 ? (
-            hostedEvents.map((event) => (
+            hostedEvents.slice(0, 3).map((event) => (
               <TouchableOpacity
                 key={event.id}
                 style={styles.eventCard}
@@ -176,7 +224,7 @@ export default function ClubDetailScreen() {
               >
                 <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.eventThumbnail} />
                 <View style={styles.eventCardContent}>
-                  <Text style={styles.eventDate}>{formatEventDate(event.date)}</Text>
+                  <Text style={styles.eventDate}>{formatEventDate((event as any).nextOccurrence.toISOString())}</Text>
                   <Text style={styles.eventTitle}>{event.title}</Text>
                   <View style={styles.eventMetaRow}>
                     <Feather name="map-pin" size={14} color={COLORS.textSubtle} />
@@ -284,6 +332,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 8,
     color: COLORS.textPrimary,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: SIZES.padding * 1.5,
+  },
+  seeAllText: {
+    color: COLORS.primary,
+    fontWeight: '500',
+    fontSize: 14,
   },
   description: {
     fontSize: 15,

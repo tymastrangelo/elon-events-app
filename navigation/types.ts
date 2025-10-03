@@ -22,13 +22,13 @@ export type RootStackParamList = {
   MyClubs: undefined;
   MySavedEvents: undefined;
   MyRsvpdEvents: undefined;
-  EventList: { title: string; filter: 'live' | 'upcoming' | 'recommended' };
+  EventList: { title: string; filter: 'live' | 'upcoming' | 'recommended' | 'club'; clubName?: string; };
   Notifications: undefined;
   NotificationSettings: undefined;
   EditProfile: undefined;
   ManageClub: { clubId: number; clubName: string };
-  CreateEditEvent: { clubId: number; clubName: string; event?: Event; onGoBack?: () => void };
-  CreateEditPost: { clubId: number; post?: { id: number; caption: string | null; image: string | null; }; onGoBack?: () => void; };
+  CreateEditEvent: { clubId: number; clubName: string; event?: Event };
+  CreateEditPost: { clubId: number; post?: Post; onGoBack?: () => void; };
   EditClub: { clubId: number; clubName: string };
   InviteUsers: { eventId: number; eventName: string };
   RsvpList: { eventId: number; eventName: string };
