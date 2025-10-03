@@ -68,10 +68,13 @@ export default function ClubDetailScreen() {
   const insets = useSafeAreaInsets();
   const { joinedClubs, toggleJoinedClub } = useUser();
 
+  const [activeTab, setActiveTab] = useState<'Upcoming' | 'Past'>('Upcoming');
   const [club, setClub] = useState<Club | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hostedEvents, setHostedEvents] = useState<Event[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [pastEvents, setPastEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
+  const now = new Date();
 
   const isJoined = club ? joinedClubs.includes(String(club.id)) : false;
 
@@ -112,13 +115,21 @@ export default function ClubDetailScreen() {
       if (eventsError) {
         console.error('Error fetching hosted events:', eventsError);
       } else {
-        // Sort events by their next upcoming occurrence
-        const sortedEvents = (eventsData as Event[])
-          .map(event => ({ ...event, nextOccurrence: getNextOccurrence(event) }))
+        const processedEvents = (eventsData as Event[]).map(event => ({
+          ...event,
+          nextOccurrence: getNextOccurrence(event),
+        }));
+
+        const upcoming = processedEvents
+          .filter(e => e.nextOccurrence >= now)
           .sort((a, b) => a.nextOccurrence.getTime() - b.nextOccurrence.getTime());
-        
+
+        const past = processedEvents
+          .filter(e => e.nextOccurrence < now)
+          .sort((a, b) => b.nextOccurrence.getTime() - a.nextOccurrence.getTime());
+
         // @ts-ignore - We've added a temporary 'nextOccurrence' property for sorting
-        setHostedEvents(sortedEvents);
+        setUpcomingEvents(upcoming); setPastEvents(past);
       }
       setLoadingEvents(false);
       setLoading(false);
@@ -203,20 +214,29 @@ export default function ClubDetailScreen() {
           <Text style={styles.description}>{club.description}</Text>
 
           {/* Hosted Events */}
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Hosted Events</Text>
-            {hostedEvents.length > 3 && (
+          <View style={styles.eventSectionContainer}>
+            <View style={styles.eventTabContainer}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('EventList', { title: `${club.name} Events`, filter: 'club', clubName: club.name })}
+                style={[styles.eventTab, activeTab === 'Upcoming' && styles.activeEventTab]}
+                onPress={() => setActiveTab('Upcoming')}
               >
-                <Text style={styles.seeAllText}>See All</Text>
+                <Text style={[styles.eventTabText, activeTab === 'Upcoming' && styles.activeEventTabText]}>Upcoming</Text>
               </TouchableOpacity>
-            )}
+              <TouchableOpacity
+                style={[styles.eventTab, activeTab === 'Past' && styles.activeEventTab]}
+                onPress={() => setActiveTab('Past')}
+              >
+                <Text style={[styles.eventTabText, activeTab === 'Past' && styles.activeEventTabText]}>Past</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+
           {loadingEvents ? (
             <ActivityIndicator style={{ marginTop: 20 }} color={COLORS.primary} />
-          ) : hostedEvents.length > 0 ? (
-            hostedEvents.slice(0, 3).map((event) => (
+          ) : activeTab === 'Upcoming' ? (
+            upcomingEvents.length > 0 ? (
+              <>
+              {upcomingEvents.slice(0, 3).map((event) => (
               <TouchableOpacity
                 key={event.id}
                 style={styles.eventCard}
@@ -231,11 +251,37 @@ export default function ClubDetailScreen() {
                     <Text style={styles.eventLocation}>{event.location || 'No location'}</Text>
                   </View>
                 </View>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={styles.noEventsText}>This club has no upcoming events.</Text>
-          )}
+              </TouchableOpacity>))}
+              {upcomingEvents.length > 3 && (
+                <TouchableOpacity
+                  style={styles.seeAllButton}
+                  onPress={() => navigation.navigate('EventList', { title: `${club.name} Events`, filter: 'club', clubName: club.name })}
+                >
+                  <Text style={styles.seeAllButtonText}>See All Upcoming Events</Text>
+                </TouchableOpacity>
+              )}
+              </>
+            ) : (
+              <Text style={styles.noEventsText}>This club has no upcoming events.</Text>
+            )
+          ) : ( // Past Events
+            pastEvents.length > 0 ? (
+              pastEvents.map((event) => (
+              <TouchableOpacity
+                key={event.id}
+                style={styles.eventCard}
+                onPress={() => navigation.navigate('EventDetail', { event })}
+              >
+                <Image source={{ uri: event.image || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png' }} style={styles.eventThumbnail} />
+                <View style={styles.eventCardContent}>
+                  <Text style={styles.eventDate}>{formatEventDate((event as any).nextOccurrence.toISOString())}</Text>
+                  <Text style={styles.eventTitle}>{event.title}</Text>
+                </View>
+              </TouchableOpacity>))
+            ) : (
+              <Text style={styles.noEventsText}>This club has no past events.</Text>
+            )
+          ) }
 
           {/* Leave Club Button - Renders inside the scroll view when joined */}
           {isJoined && (
@@ -343,6 +389,44 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: '500',
     fontSize: 14,
+  },
+  eventSectionContainer: {
+    marginTop: SIZES.padding * 1.5,
+  },
+  eventTabContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.input,
+    borderRadius: SIZES.radius,
+    padding: 4,
+  },
+  eventTab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: SIZES.radius - 4,
+    alignItems: 'center',
+  },
+  activeEventTab: {
+    backgroundColor: COLORS.white,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  eventTabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textMuted,
+  },
+  activeEventTabText: {
+    color: COLORS.primary,
+  },
+  seeAllButton: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  seeAllButtonText: {
+    color: COLORS.primary, fontWeight: '500'
   },
   description: {
     fontSize: 15,

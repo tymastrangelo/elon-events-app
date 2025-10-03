@@ -19,7 +19,7 @@ import * as Calendar from 'expo-calendar';
 import { RootStackParamList } from '../navigation/types';
 import { Event, Club } from '../data/mockData';
 import { COLORS, SIZES } from '../theme';
-import { useUser } from '../context/UserContext';
+import { useUser, Club as UserClub } from '../context/UserContext';
 import { supabase } from '../lib/supabase';
 import { addDays, addMonths } from 'date-fns';
 
@@ -27,7 +27,7 @@ export default function EventDetailScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'EventDetail'>>();
   const { event } = route.params;
-  const { rsvpdEvents, toggleRsvp, savedEvents, toggleSavedEvent } = useUser();
+  const { rsvpdEvents, toggleRsvp, savedEvents, toggleSavedEvent, allClubs } = useUser();
   const [hostClubId, setHostClubId] = useState<number | null>(null);
   const [attendees, setAttendees] = useState<{ avatar_url: string | null }[]>([]);
   const isRsvpd = rsvpdEvents.includes(String(event.id));
@@ -138,19 +138,13 @@ export default function EventDetailScreen() {
 
   // Fetch the host club's ID when the component mounts
   useEffect(() => {
-    const fetchHostClubId = async () => {
-      if (!event.host) return;
-      const { data, error } = await supabase
-        .from('clubs')
-        .select('id')
-        .eq('name', event.host)
-        .single();
-      if (data) {
-        setHostClubId(data.id);
+    if (event.host && allClubs.length > 0) {
+      const club = allClubs.find(c => c.name === event.host);
+      if (club) {
+        setHostClubId(club.id);
       }
-    };
-    fetchHostClubId();
-  }, [event.host]);
+    }
+  }, [event.host, allClubs]);
 
   // Fetch attendee avatars and count for the RSVP section
   useEffect(() => {
@@ -314,7 +308,10 @@ export default function EventDetailScreen() {
           {/* Hosted by */}
           {event.host && (
             <TouchableOpacity onPress={handleHostPress}>
-              <Text style={styles.hostText}>Hosted by {event.host}</Text>
+              <Text style={styles.hostText}>
+                Hosted by{' '}
+                {hostClubId ? event.host : '...'}
+              </Text>
             </TouchableOpacity>
           )}
 

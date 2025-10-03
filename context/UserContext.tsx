@@ -5,7 +5,7 @@ import { Alert, AppState, Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
-import { Event, Club } from '../data/mockData';
+import { Event, Club as AppClub } from '../data/mockData';
 
 interface UserContextType {
   // Auth State
@@ -18,7 +18,7 @@ interface UserContextType {
   savedEvents: string[];
   joinedClubs: string[];
   rsvpdEvents: string[];
-  // App-wide data
+  // App-wide data (re-exporting Club type for use in other components)
   allEvents: Event[];
   allClubs: Club[];
   // Data versioning for triggering refreshes
@@ -30,6 +30,9 @@ interface UserContextType {
   toggleRsvp: (eventId: string) => Promise<void>;
   refreshAllData: () => Promise<void>;
 }
+
+// Re-export the Club type so other files can use it.
+export type Club = AppClub;
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
