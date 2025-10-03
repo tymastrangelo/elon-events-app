@@ -9,9 +9,11 @@ import {
   Image,
   TextInput,
   ActivityIndicator,
+  Modal,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, DrawerActions, CompositeNavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { COLORS, SIZES } from '../theme';
@@ -22,7 +24,33 @@ import { supabase } from '../lib/supabase';
 // Import useUser to access global state
 import { useUser } from '../context/UserContext';
 
-const clubCategories = ['All', 'Academic', 'Cultural', 'Service', 'Sports', 'Music', 'Arts'];
+const clubCategories = [
+  'All',
+  'Academic',
+  'Academic & Professional',
+  'Arts',
+  'Athletics',
+  'Campus Life',
+  'Campus Program/Department',
+  'Career',
+  'Club Sports',
+  'Competition',
+  'Cultural',
+  'Fraternities and Sororities',
+  'Gallery & Exhibits',
+  'Honorary',
+  'Media',
+  'Music',
+  'Music & Arts',
+  'Performance',
+  'Political',
+  'Programming',
+  'Service',
+  'Service & Advocacy',
+  'Spirituality',
+  'Sports',
+  'University Program/Department',
+];
 
 export default function ClubsScreen() {
   const navigation = useNavigation<any>();
@@ -31,6 +59,7 @@ export default function ClubsScreen() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -54,42 +83,22 @@ export default function ClubsScreen() {
         <View style={{ width: 24 }} />
       </View>
  
-      {/* Search Bar */}
-      <TextInput 
-        style={styles.searchBar}
-        placeholder="Search for clubs..."
-        placeholderTextColor={COLORS.textMuted}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
-
-      {/* Category Filter */}
-      <View style={styles.categoryWrapper}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryScroll}
-        >
-          {clubCategories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryChip,
-                selectedCategory === category && styles.activeCategoryChip,
-              ]}
-              onPress={() => setSelectedCategory(category)}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  selectedCategory === category && styles.activeCategoryText,
-                ]}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+      {/* Search and Filter Section */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchBarWrapper}>
+          <Feather name="search" size={18} color={COLORS.textMuted} style={{ marginRight: 8 }} />
+          <TextInput 
+            style={styles.searchBar}
+            placeholder="Search for clubs..."
+            placeholderTextColor={COLORS.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <TouchableOpacity style={styles.filterButton} onPress={() => setModalVisible(true)}>
+          <Ionicons name="filter" size={20} color={COLORS.primary} />
+          <Text style={styles.filterButtonText}>{selectedCategory !== 'All' ? '1' : ''}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Club Cards */}
@@ -133,6 +142,42 @@ export default function ClubsScreen() {
         refreshing={isRefreshing}
         contentContainerStyle={styles.clubList}
       />
+
+      {/* Category Filter Modal */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Filter by Category</Text>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Ionicons name="close" size={28} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={clubCategories}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.modalItem}
+                onPress={() => {
+                  setSelectedCategory(item);
+                  setModalVisible(false);
+                }}
+              >
+                <Text style={[styles.modalItemText, selectedCategory === item && styles.activeModalItemText]}>
+                  {item}
+                </Text>
+                {selectedCategory === item && <Ionicons name="checkmark" size={24} color={COLORS.primary} />}
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={{ paddingBottom: 40 }}
+          />
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -155,41 +200,47 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.textPrimary,
   },
-  searchBar: {
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  searchBarWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: COLORS.input,
     borderRadius: SIZES.radius,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 10,
-  },
-  categoryWrapper: {
     height: 48,
-    marginBottom: 8,
   },
-  categoryScroll: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  categoryChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: COLORS.input,
-    marginRight: 10,
-  },
-  activeCategoryChip: {
-    backgroundColor: COLORS.primary,
-  },
-  categoryText: {
+  searchBar: {
+    flex: 1,
     fontSize: 14,
     color: COLORS.textSecondary,
   },
-  activeCategoryText: {
+  filterButton: {
+    marginLeft: 12,
+    height: 48,
+    width: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryLight,
+    borderRadius: SIZES.radius,
+  },
+  filterButtonText: {
+    position: 'absolute',
+    top: 6,
+    right: 8,
+    backgroundColor: COLORS.primary,
     color: COLORS.white,
-    fontWeight: '600',
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    textAlign: 'center',
+    fontSize: 10,
+    fontWeight: 'bold',
+    lineHeight: 16,
   },
   clubList: {
     paddingBottom: 120,
@@ -239,4 +290,39 @@ const styles = StyleSheet.create({
   },
   memberInfo: { flexDirection: 'row', alignItems: 'center' },
   memberText: { fontSize: 13, color: COLORS.textSubtle },
+  // Modal Styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    paddingTop: Platform.OS === 'ios' ? 44 : 0, // Manually add padding for iOS notch
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SIZES.padding,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: COLORS.textPrimary,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: SIZES.padding,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalItemText: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+  },
+  activeModalItemText: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
 });
