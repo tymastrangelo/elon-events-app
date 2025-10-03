@@ -229,7 +229,7 @@ export default function ManageClubScreen() {
               ListHeaderComponent={
                 <TouchableOpacity
                   style={styles.createButton}
-                  onPress={() => navigation.navigate('CreateEditEvent', { clubId, clubName, onGoBack: refreshAllData })}
+                  onPress={() => navigation.navigate('CreateEditEvent', { clubId, clubName })}
                 >
                   <Ionicons name="add-circle-outline" size={22} color={COLORS.primary} />
                   <Text style={styles.createButtonText}>Create New Event</Text>
@@ -257,7 +257,7 @@ export default function ManageClubScreen() {
                     )}
                     <TouchableOpacity
                       style={styles.editButton}
-                      onPress={() => navigation.navigate('CreateEditEvent', { clubId, clubName, event: item, onGoBack: refreshAllData })}
+                      onPress={() => navigation.navigate('CreateEditEvent', { clubId, clubName, event: item })}
                     >
                       <Text style={styles.editButtonText}>Edit</Text>
                     </TouchableOpacity>
