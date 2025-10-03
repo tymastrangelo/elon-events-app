@@ -53,4 +53,5 @@ export type Club = {
   meetingTimes?: string;
   contactEmail?: string;
   member_count?: number; // Add this property
+  is_private?: boolean;
 };

@@ -10,6 +10,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Switch,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
@@ -33,6 +34,7 @@ export default function EditClubScreen() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [currentClubName, setCurrentClubName] = useState(clubName);
   const [description, setDescription] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
 
   useEffect(() => {
     const club = allClubs.find(c => c.id === clubId);
@@ -40,6 +42,7 @@ export default function EditClubScreen() {
       setAvatarUrl(club.image);
       setCurrentClubName(club.name);
       setDescription(club.description || '');
+      setIsPrivate(club.is_private || false);
     }
   }, [clubId, allClubs]);
 
@@ -126,6 +129,7 @@ export default function EditClubScreen() {
         .update({
           name: currentClubName,
           description: description,
+          is_private: isPrivate,
         })
         .eq('id', clubId);
 
@@ -146,7 +150,8 @@ export default function EditClubScreen() {
   // A simple check to see if anything has changed
   const hasChanges = () => {
     const originalClub = allClubs.find(c => c.id === clubId);
-    return originalClub?.name !== currentClubName || originalClub?.description !== description;
+    if (!originalClub) return false;
+    return originalClub.name !== currentClubName || originalClub.description !== description || originalClub.is_private !== isPrivate;
   };
 
   return (
@@ -194,6 +199,17 @@ export default function EditClubScreen() {
                 placeholder="Tell everyone about your club"
                 multiline
               />
+
+              <Text style={styles.label}>Club Privacy</Text>
+              <View style={styles.switchRow}>
+                <Text style={styles.switchLabel}>Private Club</Text>
+                <Switch
+                  value={isPrivate}
+                  onValueChange={setIsPrivate}
+                  thumbColor={isPrivate ? COLORS.primary : COLORS.border}
+                  trackColor={{ false: COLORS.border, true: COLORS.primaryLight }}
+                />
+              </View>
             </View>
           </View>
         </TouchableWithoutFeedback>
@@ -270,6 +286,19 @@ const styles = StyleSheet.create({
   textArea: {
     height: 120,
     textAlignVertical: 'top',
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.input,
+    padding: 14,
+    borderRadius: SIZES.radius,
+  },
+  switchLabel: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    flex: 1,
   },
   saveButton: {
     margin: SIZES.padding, // Use margin to position it at the bottom
