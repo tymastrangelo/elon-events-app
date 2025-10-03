@@ -13,6 +13,7 @@ import {
   Switch,
   Modal,
   FlatList,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
@@ -76,6 +77,17 @@ export default function CreateEditEventScreen() {
     };
     fetchLocations();
   }, []);
+
+  useEffect(() => {
+    // When editing an event, find and set the initial location object
+    // to ensure coordinates are preserved if only the room is changed.
+    if (isEditMode && event?.location && locations.length > 0) {
+      const initialLocation = locations.find(loc => loc.name === event.location);
+      if (initialLocation) {
+        setSelectedLocation(initialLocation);
+      }
+    }
+  }, [isEditMode, event, locations]);
 
   const handleLocationSelect = async (location: Location) => {
     setSelectedLocation(location);
@@ -158,9 +170,9 @@ export default function CreateEditEventScreen() {
       location: locationString.trim(),
       room: roomString.trim() || null,
       date: date.toISOString(),
-      image: finalImageUrl,
-      host: clubName, // Set the host to the current club
       end_date: endDate.toISOString(),
+      image: finalImageUrl,
+      host: clubName,
       coordinates: selectedLocation?.coordinates || null,
       is_recurring: isRecurring,
       recurrence_pattern: isRecurring ? recurrencePattern : null,
@@ -353,14 +365,18 @@ export default function CreateEditEventScreen() {
         visible={locationModalVisible}
         onRequestClose={() => setLocationModalVisible(false)}
       >
-        <SafeAreaView style={styles.modalContainer} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Location</Text>
             <TouchableOpacity onPress={() => setLocationModalVisible(false)}>
               <Ionicons name="close" size={28} color={COLORS.textSecondary} />
             </TouchableOpacity>
           </View>
-          <View style={styles.modalContent}>
+          <KeyboardAvoidingView
+            style={styles.modalContent}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+          >
             <View style={styles.searchBox}>
               <Feather name="search" size={18} color={COLORS.textMuted} />
               <TextInput
@@ -372,15 +388,15 @@ export default function CreateEditEventScreen() {
             </View>
             <FlatList
               data={filteredLocations}
-              style={{ flex: 1 }}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }: { item: Location }) => (
                 <TouchableOpacity style={styles.modalItem} onPress={() => handleLocationSelect(item)}>
                   <Text style={styles.modalItemText}>{item.name}</Text>
                 </TouchableOpacity>
               )}
+              keyboardShouldPersistTaps="handled"
             />
-          </View>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
 
@@ -391,14 +407,18 @@ export default function CreateEditEventScreen() {
         visible={roomModalVisible}
         onRequestClose={() => setRoomModalVisible(false)}
       >
-        <SafeAreaView style={styles.modalContainer} edges={['top', 'left', 'right']}>
+        <SafeAreaView style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Room</Text>
             <TouchableOpacity onPress={() => setRoomModalVisible(false)}>
               <Ionicons name="close" size={28} color={COLORS.textSecondary} />
             </TouchableOpacity>
           </View>
-          <View style={styles.modalContent}>
+          <KeyboardAvoidingView
+            style={styles.modalContent}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+          >
             <View style={styles.searchBox}>
               <Feather name="search" size={18} color={COLORS.textMuted} />
               <TextInput
@@ -410,15 +430,15 @@ export default function CreateEditEventScreen() {
             </View>
             <FlatList
               data={filteredRooms}
-              style={{ flex: 1 }}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }: { item: Room }) => (
                 <TouchableOpacity style={styles.modalItem} onPress={() => handleRoomSelect(item)}>
                   <Text style={styles.modalItemText}>{item.name}</Text>
                 </TouchableOpacity>
               )}
+              keyboardShouldPersistTaps="handled"
             />
-          </View>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
     </SafeAreaView>

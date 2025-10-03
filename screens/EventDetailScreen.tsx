@@ -82,9 +82,22 @@ export default function EventDetailScreen() {
 
 
   const handleMapOpen = () => {
-    const encodedLocation = encodeURIComponent(event.location || '');
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
-    Linking.openURL(url);
+    let url = '';
+    const locationName = encodeURIComponent(event.location || '');
+
+    // Prioritize using coordinates for a precise location pin.
+    if (event.coordinates?.latitude && event.coordinates?.longitude) {
+      const { latitude, longitude } = event.coordinates;
+      // Platform-specific URL schemes to open the map app with a pin and a label.
+      url = Platform.select({
+        ios: `maps:0,0?q=${locationName}@${latitude},${longitude}`,
+        android: `geo:${latitude},${longitude}?q=${locationName}`,
+      }) || `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    } else {
+      // Fallback to searching by the location name if no coordinates are present.
+      url = `https://www.google.com/maps/search/?api=1&query=${locationName}`;
+    }
+    Linking.canOpenURL(url).then(supported => { if (supported) Linking.openURL(url); });
   };
 
   // Fetch the host club's ID when the component mounts
