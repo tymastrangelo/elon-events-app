@@ -71,10 +71,12 @@ export default function EventListScreen() {
         const joinedClubNames = allClubs
           .filter(club => joinedClubs.includes(String(club.id)))
           .map(club => club.name);
-        baseEvents = allEvents.filter(event => event.host && joinedClubNames.includes(event.host));
+        // Only show recommended events that are in the future
+        baseEvents = allEvents.filter(event => event.host && joinedClubNames.includes(event.host) && new Date(event.date) >= now);
         break;
       case 'club':
-        baseEvents = allEvents.filter(event => event.host === clubName);
+        // Only show club events that are in the future
+        baseEvents = allEvents.filter(event => event.host === clubName && new Date(event.date) >= now);
         break;
       default:
         baseEvents = [];
@@ -83,7 +85,7 @@ export default function EventListScreen() {
     if (!searchQuery) return baseEvents;
 
     return baseEvents.filter((e) => e.title.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [filter, searchQuery, allEvents, allClubs, joinedClubs]);
+  }, [filter, searchQuery, allEvents, allClubs, joinedClubs, clubName]);
 
   const renderEvent = ({ item }: { item: Event }) => (
     <TouchableOpacity
