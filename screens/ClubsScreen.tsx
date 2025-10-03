@@ -95,9 +95,16 @@ export default function ClubsScreen() {
             onChangeText={setSearchQuery}
           />
         </View>
-        <TouchableOpacity style={styles.filterButton} onPress={() => setModalVisible(true)}>
-          <Ionicons name="filter" size={20} color={COLORS.primary} />
-          <Text style={styles.filterButtonText}>{selectedCategory !== 'All' ? '1' : ''}</Text>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            selectedCategory !== 'All' && styles.activeFilterButton,
+          ]}
+          onPress={() => setModalVisible(true)}
+        >
+          <Ionicons name="filter" size={20} color={selectedCategory !== 'All' ? COLORS.primary : COLORS.textMuted} />
+          {/* Only render the badge if a filter is active */}
+          {selectedCategory !== 'All' && <View style={styles.filterBadge} />}
         </TouchableOpacity>
       </View>
 
@@ -225,22 +232,22 @@ const styles = StyleSheet.create({
     width: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: COLORS.input, // Default inactive state
     borderRadius: SIZES.radius,
   },
-  filterButtonText: {
+  activeFilterButton: {
+    backgroundColor: COLORS.primaryLight, // Active state
+  },
+  filterBadge: {
     position: 'absolute',
     top: 6,
     right: 8,
     backgroundColor: COLORS.primary,
-    color: COLORS.white,
     borderRadius: 8,
-    width: 16,
-    height: 16,
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: 'bold',
-    lineHeight: 16,
+    width: 10,
+    height: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.primaryLight,
   },
   clubList: {
     paddingBottom: 120,
