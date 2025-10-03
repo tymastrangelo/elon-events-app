@@ -21,6 +21,7 @@ import { Event, Club } from '../data/mockData';
 import { COLORS, SIZES } from '../theme';
 import { useUser } from '../context/UserContext';
 import { supabase } from '../lib/supabase';
+import { addDays, addMonths } from 'date-fns';
 
 export default function EventDetailScreen() {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -32,6 +33,41 @@ export default function EventDetailScreen() {
   const isRsvpd = rsvpdEvents.includes(String(event.id));
   const isBookmarked = savedEvents.includes(String(event.id));
   const insets = useSafeAreaInsets();
+
+  // This function calculates the next upcoming date for a recurring event.
+  const getNextOccurrence = (event: Event): { nextStartDate: Date, nextEndDate: Date | null } => {
+    const originalStartDate = new Date(event.date);
+    const now = new Date();
+
+    // If it's not a recurring event or if the original date is still in the future, return the original dates.
+    if (!event.is_recurring || originalStartDate > now) {
+      return { nextStartDate: originalStartDate, nextEndDate: event.end_date ? new Date(event.end_date) : null };
+    }
+
+    // If the event is recurring and in the past, calculate the next occurrence.
+    let nextStartDate = new Date(originalStartDate.getTime());
+    const duration = event.end_date ? new Date(event.end_date).getTime() - originalStartDate.getTime() : 2 * 60 * 60 * 1000; // Default 2hr duration
+
+    while (new Date(nextStartDate.getTime() + duration) <= now) {
+      switch (event.recurrence_pattern) {
+        case 'weekly':
+          nextStartDate = addDays(nextStartDate, 7);
+          break;
+        case 'bi-weekly':
+          nextStartDate = addDays(nextStartDate, 14);
+          break;
+        case 'monthly':
+          nextStartDate = addMonths(nextStartDate, 1);
+          break;
+        default:
+          // If pattern is unknown, break the loop to avoid an infinite loop.
+          return { nextStartDate: originalStartDate, nextEndDate: event.end_date ? new Date(event.end_date) : null };
+      }
+    }
+
+    const nextEndDate = new Date(nextStartDate.getTime() + duration);
+    return { nextStartDate, nextEndDate };
+  };
 
   const handleRsvp = () => {
     if (isRsvpd) {
@@ -149,19 +185,10 @@ export default function EventDetailScreen() {
     }
 
     const createCalendarEvent = async () => {
-      const startDate = new Date(event.date);
-      let endDate: Date;
+      // Use the calculated next occurrence for adding to the calendar
+      const { nextStartDate: startDate, nextEndDate: endDate } = getNextOccurrence(event);
 
-      if (event.end_date) {
-        endDate = new Date(event.end_date);
-        // If start date is in the past, but end date isn't, something is wrong.
-        // For simplicity, we won't try to adjust recurring/past events with end dates.
-        // This logic primarily helps for single events without an end_date.
-      } else {
-        // If no end_date, assume a default duration (e.g., 2 hours)
-        endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
-      }
-
+      if (!endDate) return; // Should not happen with our logic, but a good safeguard.
 
 
       const eventDetails = {
@@ -209,6 +236,9 @@ export default function EventDetailScreen() {
       ]
     );
   };
+
+  // Get the correct upcoming dates to display
+  const { nextStartDate, nextEndDate } = getNextOccurrence(event);
 
   // This function formats the ISO date string into a readable format for the UI.
   const formatEventDate = (startString: string, endString: string | null): { day: string, time: string } => {
@@ -296,12 +326,31 @@ export default function EventDetailScreen() {
                   <Feather name="calendar" size={24} color={COLORS.primary} />
                 </View>
                 <View>
-                  <Text style={styles.infoTitle}>{formatEventDate(event.date, event.end_date).day}</Text>
-                  <Text style={styles.infoSubtitle}>{formatEventDate(event.date, event.end_date).time}</Text>
+                  <Text style={styles.infoTitle}>{formatEventDate(nextStartDate.toISOString(), nextEndDate?.toISOString() ?? null).day}</Text>
+                  <Text style={styles.infoSubtitle}>{formatEventDate(nextStartDate.toISOString(), nextEndDate?.toISOString() ?? null).time}</Text>
                 </View>
               </View>
             </TouchableOpacity>
           )}
+
+          {/* Recurrence Info */}
+          {event.is_recurring && (
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Feather name="repeat" size={24} color={COLORS.primary} />
+              </View>
+              <View>
+                <Text style={styles.infoTitle}>Recurring Event</Text>
+                <Text style={styles.infoSubtitle}>
+                  {event.recurrence_pattern
+                    ? `Repeats ${event.recurrence_pattern.charAt(0).toUpperCase() + event.recurrence_pattern.slice(1)}`
+                    : 'This event repeats on a regular schedule.'
+                  }
+                </Text>
+              </View>
+            </View>
+          )}
+
 
           {/* Location Info */}
           <View style={styles.infoRow}>
@@ -343,7 +392,7 @@ export default function EventDetailScreen() {
                     scrollEnabled={false}
                     zoomEnabled={false}
                   >
-                    <Marker coordinate={event.coordinates} />
+                    <Marker coordinate={event.coordinates} tracksViewChanges={false} />
                   </MapView>
                 </View>
               </TouchableOpacity>
